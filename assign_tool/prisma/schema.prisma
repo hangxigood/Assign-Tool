@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  password     String
+  role         Role
+  assignments  Assignment[]
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  technician  User     @relation(fields: [technicianId], references: [id])
+  technicianId String
+  documents   Document[]
+}
+
+model Document {
+  id           String     @id @default(uuid())
+  filename     String
+  url          String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId String
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  TECHNICIAN
+}
