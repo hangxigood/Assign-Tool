@@ -3,11 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = await context.params;
+
   try {
     const workOrder = await prisma.workOrder.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         assignedTo: {
           select: {
@@ -39,12 +41,13 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = await context.params;
   try {
     const data = await request.json();
     const workOrder = await prisma.workOrder.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         type: data.type,
         status: data.status,
@@ -60,7 +63,7 @@ export async function PUT(
         deliveryLocationId: data.deliveryLocationId,
       },
     });
-
+    
     return NextResponse.json(workOrder);
   } catch (error) {
     console.error('Error updating work order:', error);
@@ -73,14 +76,15 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = await context.params;
   try {
     await prisma.workOrder.delete({
-      where: { id: params.id },
+      where: { id },
     });
-
-    return new NextResponse(null, { status: 204 });
+    
+    return NextResponse.json({ message: 'Work order deleted successfully' });
   } catch (error) {
     console.error('Error deleting work order:', error);
     return NextResponse.json(
