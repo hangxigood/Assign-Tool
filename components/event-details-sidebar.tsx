@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X } from 'lucide-react'
+import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 
 interface EventDetailsProps {
   event: {
@@ -8,10 +9,15 @@ interface EventDetailsProps {
     title: string
     start: Date
     end: Date
-    location: string
-    assignedTo: string
-    notes: string
-    documents: string[]
+    type: WorkOrderType
+    status: WorkOrderStatus
+    clientName: string
+    extendedProps: {
+      type: WorkOrderType
+      status: WorkOrderStatus
+      assignedTo: string
+      supervisor: string
+    }
   } | null
   onClose: () => void
 }
@@ -22,7 +28,7 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
   return (
     <div className="w-80 border-l bg-white dark:bg-gray-800 h-full overflow-hidden flex flex-col">
       <div className="flex justify-between items-center p-4 border-b">
-        <h2 className="text-lg font-semibold">Event Details</h2>
+        <h2 className="text-lg font-semibold">Work Order Details</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
@@ -38,28 +44,27 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             <p>{event.start.toLocaleString()} - {event.end.toLocaleString()}</p>
           </div>
           <div>
-            <h3 className="font-medium">Location</h3>
-            <p>{event.location}</p>
+            <h3 className="font-medium">Type</h3>
+            <p>{event.type}</p>
+          </div>
+          <div>
+            <h3 className="font-medium">Status</h3>
+            <p>{event.status}</p>
+          </div>
+          <div>
+            <h3 className="font-medium">Client</h3>
+            <p>{event.clientName}</p>
           </div>
           <div>
             <h3 className="font-medium">Assigned To</h3>
-            <p>{event.assignedTo}</p>
+            <p>{event.extendedProps.assignedTo}</p>
           </div>
           <div>
-            <h3 className="font-medium">Notes</h3>
-            <p>{event.notes}</p>
-          </div>
-          <div>
-            <h3 className="font-medium">Documents</h3>
-            <ul className="list-disc list-inside">
-              {event.documents.map((doc, index) => (
-                <li key={index}>{doc}</li>
-              ))}
-            </ul>
+            <h3 className="font-medium">Supervisor</h3>
+            <p>{event.extendedProps.supervisor}</p>
           </div>
         </div>
       </ScrollArea>
     </div>
   )
 }
-
