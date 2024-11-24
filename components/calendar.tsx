@@ -1,74 +1,92 @@
 "use client"
 
 import { useState } from "react"
+import FullCalendar from "@fullcalendar/react"
+import timeGridPlugin from "@fullcalendar/timegrid"
+import interactionPlugin from "@fullcalendar/interaction"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
-const HOURS = Array.from({ length: 10 }, (_, i) => i + 8) // 8 AM to 5 PM
+interface Event {
+  id: string
+  title: string
+  start: string
+  end: string
+  backgroundColor?: string
+  borderColor?: string
+  type?: string
+}
 
 export function Calendar() {
-  const [view, setView] = useState<"day" | "week">("day")
+  const [view, setView] = useState<"timeGridDay" | "timeGridWeek">("timeGridDay")
   
-  return (
-    <div className="bg-white rounded-lg shadow">
-      <ScrollArea className="h-[calc(100vh-13rem)]">
-        <div className="min-w-full">
-          <div className="grid grid-cols-[64px_1fr] divide-x">
-            <div className="sticky left-0 bg-white">
-              {HOURS.map((hour) => (
-                <div key={hour} className="h-20 border-b text-sm text-gray-500 text-right pr-2">
-                  {`${hour}:00`}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 divide-x">
-              {view === "day" ? (
-                <DayView />
-              ) : (
-                <WeekView />
-              )}
-            </div>
-          </div>
-        </div>
-      </ScrollArea>
-    </div>
-  )
-}
-
-function DayView() {
-  // Mock data - replace with actual data from API
-  const events = [
+  // Mock events - replace with actual data
+  const events: Event[] = [
     {
-      id: 1,
+      id: "1",
       title: "Primary 5356 - Switch",
-      start: 8,
-      duration: 1,
-      color: "blue",
+      start: "2024-01-22T09:00:00",
+      end: "2024-01-22T10:00:00",
+      backgroundColor: "#3b82f6",
+      borderColor: "#2563eb",
+      type: "primary"
     },
-    // Add more events
+    {
+      id: "2",
+      title: "Emergency 5357 - HVAC",
+      start: "2024-01-22T11:00:00",
+      end: "2024-01-22T12:00:00",
+      backgroundColor: "#ef4444",
+      borderColor: "#dc2626",
+      type: "emergency"
+    }
   ]
 
+  const handleEventDrop = (info: any) => {
+    console.log("Event dropped:", {
+      id: info.event.id,
+      newStart: info.event.start,
+      newEnd: info.event.end
+    })
+    // TODO: Implement backend update
+  }
+
   return (
-    <div className="relative">
-      {events.map((event) => (
-        <div
-          key={event.id}
-          className={`absolute left-0 right-0 mx-2 rounded p-2 text-sm`}
-          style={{
-            top: `${(event.start - 8) * 5}rem`,
-            height: `${event.duration * 5}rem`,
-            backgroundColor: event.color,
-          }}
-        >
-          {event.title}
+    <div className="flex flex-col gap-4 bg-white rounded-lg shadow p-4 h-full">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button
+            variant={view === "timeGridDay" ? "default" : "outline"}
+            onClick={() => setView("timeGridDay")}
+          >
+            Day
+          </Button>
+          <Button
+            variant={view === "timeGridWeek" ? "default" : "outline"}
+            onClick={() => setView("timeGridWeek")}
+          >
+            Week
+          </Button>
         </div>
-      ))}
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <FullCalendar
+          plugins={[timeGridPlugin, interactionPlugin]}
+          initialView={view}
+          editable={true}
+          droppable={true}
+          eventDrop={handleEventDrop}
+          slotMinTime="08:00:00"
+          slotMaxTime="17:00:00"
+          allDaySlot={false}
+          events={events}
+          headerToolbar={false}
+          eventOverlap={true}
+          slotEventOverlap={true}
+          expandRows={true}
+          height="100%"
+          scrollTime="08:00:00"
+        />
+      </div>
     </div>
   )
 }
-
-function WeekView() {
-  // Similar to DayView but with 7 columns
-  return <div>Week view implementation</div>
-}
-
