@@ -63,7 +63,6 @@ model WorkOrder {
   type            WorkOrderType
   status          WorkOrderStatus @default(PENDING)
   fameNumber      String          @unique
-  priority        Int             @default(1)
   
   // Client information
   clientName      String
