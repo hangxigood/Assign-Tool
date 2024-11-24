@@ -1,71 +1,210 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { Button } from "@/components/ui/button"
+import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-interface Event {
+interface WorkOrderEvent {
   id: string
   title: string
-  start: string
-  end: string
+  start: Date
+  end: Date
   backgroundColor?: string
   borderColor?: string
-  type?: string
+  type: WorkOrderType
+  status: WorkOrderStatus
+  clientName: string
+  extendedProps: {
+    type: WorkOrderType
+    status: WorkOrderStatus
+    assignedTo: string
+    supervisor: string
+  }
+}
+
+const getEventColor = (type: WorkOrderType) => {
+  switch (type) {
+    case "PICKUP":
+      return { backgroundColor: "#3b82f6", borderColor: "#2563eb" }
+    case "DELIVERY":
+      return { backgroundColor: "#10b981", borderColor: "#059669" }
+    case "SETUP":
+      return { backgroundColor: "#f59e0b", borderColor: "#d97706" }
+    case "ACTIVATION":
+      return { backgroundColor: "#8b5cf6", borderColor: "#7c3aed" }
+    case "TEARDOWN":
+      return { backgroundColor: "#ef4444", borderColor: "#dc2626" }
+    default:
+      return { backgroundColor: "#6b7280", borderColor: "#4b5563" }
+  }
 }
 
 export function Calendar() {
   const [view, setView] = useState<"timeGridDay" | "timeGridWeek">("timeGridDay")
-  
-  // Mock events - replace with actual data
-  const events: Event[] = [
-    {
-      id: "1",
-      title: "Primary 5356 - Switch",
-      start: "2024-01-22T09:00:00",
-      end: "2024-01-22T10:00:00",
-      backgroundColor: "#3b82f6",
-      borderColor: "#2563eb",
-      type: "primary"
-    },
-    {
-      id: "2",
-      title: "Emergency 5357 - HVAC",
-      start: "2024-01-22T11:00:00",
-      end: "2024-01-22T12:00:00",
-      backgroundColor: "#ef4444",
-      borderColor: "#dc2626",
-      type: "emergency"
-    }
-  ]
+  const [events, setEvents] = useState<WorkOrderEvent[]>([])
+  const [calendarApi, setCalendarApi] = useState<any>(null)
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
 
-  const handleEventDrop = (info: any) => {
-    console.log("Event dropped:", {
-      id: info.event.id,
-      newStart: info.event.start,
-      newEnd: info.event.end
-    })
-    // TODO: Implement backend update
+  useEffect(() => {
+    const fetchWorkOrders = async () => {
+      try {
+        console.log('Fetching work orders...');
+        const response = await fetch('/api/workorders');
+        if (!response.ok) throw new Error('Failed to fetch work orders');
+        const workOrders = await response.json();
+        console.log('Fetched work orders:', workOrders);
+        
+        const calendarEvents = workOrders.map((order: any) => {
+          console.log('Processing order:', order);
+          const colors = getEventColor(order.type);
+          
+          // Convert UTC dates to local timezone
+          const startDate = new Date(order.startDate);
+          const endDate = order.endDate 
+            ? new Date(order.endDate)
+            : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+          const event = {
+            id: order.id,
+            title: `${order.fameNumber} - ${order.clientName}`,
+            start: startDate,
+            end: endDate,
+            ...colors,
+            type: order.type,
+            status: order.status,
+            clientName: order.clientName,
+            extendedProps: {
+              type: order.type,
+              status: order.status,
+              assignedTo: `${order.assignedTo.firstName} ${order.assignedTo.lastName}`,
+              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : ''
+            }
+          };
+          console.log('Created event:', event);
+          return event;
+        });
+        
+        console.log('Setting calendar events:', calendarEvents);
+        setEvents(calendarEvents);
+      } catch (error) {
+        console.error('Error fetching work orders:', error);
+      }
+    };
+
+    fetchWorkOrders();
+  }, [])
+
+  const handleEventDrop = async (info: any) => {
+    const { event } = info
+    try {
+      const response = await fetch(`/api/workorders/${event.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate: event.start,
+          endDate: event.end,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update work order')
+        info.revert()
+      }
+    } catch (error) {
+      console.error('Error updating work order:', error)
+      info.revert()
+    }
+  }
+
+  const handlePrevClick = () => {
+    if (calendarApi) {
+      calendarApi.prev()
+      setCurrentDate(calendarApi.getDate())
+    }
+  }
+
+  const handleNextClick = () => {
+    if (calendarApi) {
+      calendarApi.next()
+      setCurrentDate(calendarApi.getDate())
+    }
+  }
+
+  const handleTodayClick = () => {
+    if (calendarApi) {
+      calendarApi.today()
+      setCurrentDate(calendarApi.getDate())
+    }
+  }
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date)
   }
 
   return (
     <div className="flex flex-col gap-4 bg-white rounded-lg shadow p-4 h-full">
       <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          <Button
-            variant={view === "timeGridDay" ? "default" : "outline"}
-            onClick={() => setView("timeGridDay")}
-          >
-            Day
-          </Button>
-          <Button
-            variant={view === "timeGridWeek" ? "default" : "outline"}
-            onClick={() => setView("timeGridWeek")}
-          >
-            Week
-          </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2">
+            <Button
+              variant={view === "timeGridDay" ? "default" : "outline"}
+              onClick={() => {
+                setView("timeGridDay")
+                if (calendarApi) {
+                  calendarApi.changeView("timeGridDay")
+                }
+              }}
+            >
+              Day
+            </Button>
+            <Button
+              variant={view === "timeGridWeek" ? "default" : "outline"}
+              onClick={() => {
+                setView("timeGridWeek")
+                if (calendarApi) {
+                  calendarApi.changeView("timeGridWeek")
+                }
+              }}
+            >
+              Week
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrevClick}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleTodayClick}
+            >
+              Today
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextClick}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-sm font-medium">
+            {formatDate(currentDate)}
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
@@ -75,8 +214,8 @@ export function Calendar() {
           editable={true}
           droppable={true}
           eventDrop={handleEventDrop}
-          slotMinTime="08:00:00"
-          slotMaxTime="17:00:00"
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
           allDaySlot={false}
           events={events}
           headerToolbar={false}
@@ -85,6 +224,29 @@ export function Calendar() {
           expandRows={true}
           height="100%"
           scrollTime="08:00:00"
+          timeZone="local"
+          nowIndicator={true}
+          ref={(el) => {
+            if (el) {
+              setCalendarApi(el.getApi())
+            }
+          }}
+          eventContent={(eventInfo) => {
+            const event = eventInfo.event
+            return (
+              <div className="p-1 text-xs">
+                <div className="font-semibold">{event.title}</div>
+                <div className="text-gray-100">
+                  {event.start ? new Date(event.start).toLocaleTimeString() : 'Start N/A'} - 
+                  {event.end ? new Date(event.end).toLocaleTimeString() : 'End N/A'}
+                </div>
+                <div>{event.extendedProps.type}</div>
+                <div>{event.extendedProps.status}</div>
+                <div>Assigned to: {event.extendedProps.assignedTo}</div>
+                <div>Supervisor: {event.extendedProps.supervisor}</div>
+              </div>
+            )
+          }}
         />
       </div>
     </div>
