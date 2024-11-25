@@ -7,7 +7,6 @@ import interactionPlugin from "@fullcalendar/interaction"
 import { Button } from "@/components/ui/button"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { EventDetailsSidebar } from "@/components/event-details-sidebar"
 
 interface WorkOrderEvent {
   id: string
@@ -45,12 +44,17 @@ const getEventColor = (type: WorkOrderType) => {
   }
 }
 
-export function Calendar() {
+export function Calendar({
+  onEventSelect,
+  selectedEvent
+}: {
+  onEventSelect: (event: WorkOrderEvent | null) => void
+  selectedEvent: WorkOrderEvent | null
+}) {
   const [view, setView] = useState<"timeGridDay" | "timeGridWeek">("timeGridDay")
   const [events, setEvents] = useState<WorkOrderEvent[]>([])
   const [calendarApi, setCalendarApi] = useState<any>(null)
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [selectedEvent, setSelectedEvent] = useState<WorkOrderEvent | null>(null)
 
   useEffect(() => {
     const fetchWorkOrders = async () => {
@@ -216,53 +220,33 @@ export function Calendar() {
           <FullCalendar
             plugins={[timeGridPlugin, interactionPlugin]}
             initialView={view}
-            editable={true}
-            droppable={true}
-            eventDrop={handleEventDrop}
-            slotMinTime="00:00:00"
-            slotMaxTime="24:00:00"
-            allDaySlot={false}
-            events={events}
             headerToolbar={false}
-            eventOverlap={true}
-            slotEventOverlap={true}
-            expandRows={true}
-            height="100%"
-            scrollTime="08:00:00"
-            timeZone="local"
-            nowIndicator={true}
+            allDaySlot={false}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            events={events}
+            editable={true}
+            eventDrop={handleEventDrop}
             ref={(el) => {
               if (el) {
                 setCalendarApi(el.getApi())
               }
             }}
-            eventContent={(eventInfo) => {
-              const event = eventInfo.event
+            eventContent={(arg) => {
+              const event = arg.event
               return (
-                <div className="p-1 text-xs">
-                  <div className="font-semibold">{event.title}</div>
-                  <div className="text-gray-100">
-                    {event.start ? new Date(event.start).toLocaleTimeString() : 'Start N/A'} - 
-                    {event.end ? new Date(event.end).toLocaleTimeString() : 'End N/A'}
-                  </div>
-                  <div>{event.extendedProps.type}</div>
-                  <div>{event.extendedProps.status}</div>
-                  <div>Assigned to: {event.extendedProps.assignedTo}</div>
+                <div className="p-1">
+                  <div className="font-medium">{event.title}</div>
+                  <div>Assigned: {event.extendedProps.assignedTo}</div>
                   <div>Supervisor: {event.extendedProps.supervisor}</div>
                 </div>
               )
             }}
             eventClick={(info) => {
-              setSelectedEvent(info.event as unknown as WorkOrderEvent)
+              onEventSelect(info.event as unknown as WorkOrderEvent)
             }}
           />
         </div>
-        {selectedEvent && (
-          <EventDetailsSidebar
-            event={selectedEvent}
-            onClose={() => setSelectedEvent(null)}
-          />
-        )}
       </div>
     </div>
   )

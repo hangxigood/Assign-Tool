@@ -10,12 +10,17 @@ import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 interface WorkOrder {
   id: string
   title: string
+  fameNumber: string
   type: WorkOrderType
   status: WorkOrderStatus
   startDate: string
   endDate: string
   clientName: string
   assignedTo: {
+    firstName: string
+    lastName: string
+  }
+  supervisor: {
     firstName: string
     lastName: string
   }
@@ -48,9 +53,35 @@ function getWorkOrderIcon(type: WorkOrderType) {
   }
 }
 
-function WorkOrderItem({ workOrder }: { workOrder: WorkOrder }) {
+function WorkOrderItem({ workOrder, onSelect }: { 
+  workOrder: WorkOrder, 
+  onSelect: (event: any) => void 
+}) {
+  const handleClick = () => {
+    const event = {
+      id: workOrder.id,
+      title: `${workOrder.fameNumber} - ${workOrder.clientName}`,
+      start: new Date(workOrder.startDate),
+      end: new Date(workOrder.endDate),
+      type: workOrder.type,
+      status: workOrder.status,
+      clientName: workOrder.clientName,
+      extendedProps: {
+        type: workOrder.type,
+        status: workOrder.status,
+        clientName: workOrder.clientName,
+        assignedTo: `${workOrder.assignedTo.firstName} ${workOrder.assignedTo.lastName}`,
+        supervisor: workOrder.supervisor ? `${workOrder.supervisor.firstName} ${workOrder.supervisor.lastName}` : ''
+      }
+    };
+    onSelect(event);
+  };
+
   return (
-    <div className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer">
+    <div 
+      className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
+      onClick={handleClick}
+    >
       <div className="flex items-center gap-2">
         {getWorkOrderIcon(workOrder.type)}
         <span className="text-sm">
@@ -70,10 +101,10 @@ function WorkOrderItem({ workOrder }: { workOrder: WorkOrder }) {
         </span>
       </div>
     </div>
-  )
+  );
 }
 
-export function Sidebar() {
+export function Sidebar({ onEventSelect }: { onEventSelect: (event: any) => void }) {
   const { data: session } = useSession()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
 
@@ -125,7 +156,7 @@ export function Sidebar() {
           <ScrollArea className="h-[calc(100vh-150px)] mt-2">
             <div className="space-y-4">
               {workOrders.map((workOrder) => (
-                <WorkOrderItem key={workOrder.id} workOrder={workOrder} />
+                <WorkOrderItem key={workOrder.id} workOrder={workOrder} onSelect={onEventSelect} />
               ))}
               {workOrders.length === 0 && (
                 <div className="text-sm text-gray-400 text-center py-4">
