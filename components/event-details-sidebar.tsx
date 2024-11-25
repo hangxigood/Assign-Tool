@@ -1,10 +1,14 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X } from 'lucide-react'
+import { X, Edit } from 'lucide-react'
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from 'next/navigation'
+import { WorkOrderEditDialog } from "./work-order-edit-dialog"
 
-interface EventDetailsProps {
+export interface EventDetailsProps {
   event: {
     id: string
     title: string
@@ -13,22 +17,47 @@ interface EventDetailsProps {
     type: WorkOrderType
     status: WorkOrderStatus
     clientName: string
+    assignedTo: string
+    supervisor: string
+    supervisorId: string
+    fameNumber: string
+    clientPhone: string
+    clientEmail: string
+    startDate: Date
+    endDate: Date
+    pickupLocationId: string
+    deliveryLocationId: string
+    assignedToId: string
+    createdById: string
     extendedProps: {
       type: WorkOrderType
       status: WorkOrderStatus
       clientName: string
       assignedTo: string
       supervisor: string
+      supervisorId: string
+      fameNumber: string
+      clientPhone: string
+      clientEmail: string
+      startDate: Date
+      endDate: Date
+      pickupLocationId: string
+      deliveryLocationId: string
+      assignedToId: string
+      createdById: string
     }
   } | null
   onClose: () => void
 }
 
 export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      if (editDialogOpen) return; // Don't close if dialog is open
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         onClose();
       }
@@ -38,7 +67,19 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onClose]);
+  }, [onClose, editDialogOpen]);
+
+  const handleEdit = () => {
+    setEditDialogOpen(true)
+  }
+
+  const handleSave = (updatedWorkOrder: any) => {
+    // Update the event with new data
+    if (event) {
+      // You might want to refresh the calendar or update the local state here
+      window.location.reload() // For now, just reload the page
+    }
+  }
 
   if (!event) return null;
 
@@ -51,9 +92,14 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
       >
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Work Order Details</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={handleEdit}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <ScrollArea className="flex-grow h-[calc(100vh-64px)]">
           <div className="p-4 space-y-4">
@@ -67,27 +113,51 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             </div>
             <div>
               <h3 className="font-medium">Type</h3>
-              <p>{event.extendedProps.type}</p>
+              <p>{event.type}</p>
             </div>
             <div>
               <h3 className="font-medium">Status</h3>
-              <p>{event.extendedProps.status}</p>
+              <p>{event.status}</p>
             </div>
             <div>
               <h3 className="font-medium">Client</h3>
-              <p>{event.extendedProps.clientName}</p>
+              <p>{event.clientName}</p>
             </div>
             <div>
               <h3 className="font-medium">Assigned To</h3>
-              <p>{event.extendedProps.assignedTo}</p>
+              <p>{event.assignedTo}</p>
             </div>
             <div>
               <h3 className="font-medium">Supervisor</h3>
-              <p>{event.extendedProps.supervisor}</p>
+              <p>{event.supervisor}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Supervisor ID</h3>
+              <p>{event.supervisorId}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Fame Number</h3>
+              <p>{event.extendedProps.fameNumber}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Client Phone</h3>
+              <p>{event.extendedProps.clientPhone}</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Client Email</h3>
+              <p>{event.extendedProps.clientEmail}</p>
             </div>
           </div>
         </ScrollArea>
       </div>
+      
+      <WorkOrderEditDialog
+      workOrder={event}
+      open={editDialogOpen}
+      onOpenChange={setEditDialogOpen}
+      onSave={handleSave}
+      />
+
     </div>
   );
 }
