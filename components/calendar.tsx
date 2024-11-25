@@ -196,7 +196,7 @@ export function Calendar() {
               variant="outline"
               onClick={handleTodayClick}
             >
-              Today
+              {view === "timeGridDay" ? "Today" : "This Week"}
             </Button>
             <Button
               variant="outline"
