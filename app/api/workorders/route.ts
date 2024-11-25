@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+/**
+ * Handles GET requests to retrieve work orders.
+ */
 export async function GET() {
   try {
     console.log('Fetching work orders from database...');
@@ -28,13 +31,15 @@ export async function GET() {
     return NextResponse.json(workOrders);
   } catch (error) {
     console.error('Error fetching work orders:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch work orders' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
   }
 }
 
+/**
+ * Handles POST requests to create new work orders.
+ * 
+ * @param request The incoming request object.
+ */
 export async function POST(request: Request) {
   try {
     const data = await request.json();

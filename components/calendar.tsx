@@ -222,8 +222,8 @@ export function Calendar({
             initialView={view}
             headerToolbar={false}
             allDaySlot={false}
-            slotMinTime="06:00:00"
-            slotMaxTime="22:00:00"
+            slotMinTime="00:00:00"
+            slotMaxTime="24:00:00"
             events={events}
             editable={true}
             eventDrop={handleEventDrop}
