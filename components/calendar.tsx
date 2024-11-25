@@ -22,6 +22,7 @@ interface WorkOrderEvent {
   extendedProps: {
     type: WorkOrderType
     status: WorkOrderStatus
+    clientName: string
     assignedTo: string
     supervisor: string
   }
@@ -82,6 +83,7 @@ export function Calendar() {
             extendedProps: {
               type: order.type,
               status: order.status,
+              clientName: order.clientName,
               assignedTo: `${order.assignedTo.firstName} ${order.assignedTo.lastName}`,
               supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : ''
             }

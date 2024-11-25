@@ -15,6 +15,7 @@ interface EventDetailsProps {
     extendedProps: {
       type: WorkOrderType
       status: WorkOrderStatus
+      clientName: string
       assignedTo: string
       supervisor: string
     }
@@ -45,15 +46,15 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
           </div>
           <div>
             <h3 className="font-medium">Type</h3>
-            <p>{event.type}</p>
+            <p>{event.extendedProps.type}</p>
           </div>
           <div>
             <h3 className="font-medium">Status</h3>
-            <p>{event.status}</p>
+            <p>{event.extendedProps.status}</p>
           </div>
           <div>
             <h3 className="font-medium">Client</h3>
-            <p>{event.clientName}</p>
+            <p>{event.extendedProps.clientName}</p>
           </div>
           <div>
             <h3 className="font-medium">Assigned To</h3>
