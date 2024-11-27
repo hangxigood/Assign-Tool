@@ -95,142 +95,153 @@ export default function NewWorkOrder() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Create New Work Order</h1>
+    <div className="container section-padding">
+      <div className="form-container">
+        <h1 className="heading-responsive mb-6">Create New Work Order</h1>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              onValueChange={(value) => handleChange('type', value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(WorkOrderType).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="fameNumber">Fame Number</Label>
-            <Input
-              id="fameNumber"
-              value={formData.fameNumber}
-              onChange={(e) => handleChange('fameNumber', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientName">Client Name</Label>
-            <Input
-              id="clientName"
-              value={formData.clientName}
-              onChange={(e) => handleChange('clientName', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientPhone">Client Phone</Label>
-            <Input
-              id="clientPhone"
-              type="tel"
-              value={formData.clientPhone}
-              onChange={(e) => handleChange('clientPhone', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientEmail">Client Email</Label>
-            <Input
-              id="clientEmail"
-              type="email"
-              value={formData.clientEmail}
-              onChange={(e) => handleChange('clientEmail', e.target.value)}
-            />
-          </div>
-
-          <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="startDate">Start Date</Label>
-            <Input
-              type="datetime-local"
-              id="startDate"
-              name="startDate"
-              value={formData.startDate}
-              onChange={(e) => handleChange('startDate', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="endDate">End Date</Label>
-            <Input
-              type="datetime-local"
-              id="endDate"
-              name="endDate"
-              value={formData.endDate}
-              onChange={(e) => handleChange('endDate', e.target.value)}
-              min={formData.startDate}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="assignedTo">Assigned To</Label>
-            <Select
-              onValueChange={(value) => handleChange('assignedToId', value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select technician" />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .filter(user => user.role === 'TECHNICIAN')
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {`${user.firstName} ${user.lastName}`}
+        <form onSubmit={handleSubmit} className="content-spacing">
+          <div className="form-grid">
+            <div className="input-group">
+              <Label htmlFor="type">Type</Label>
+              <Select
+                onValueChange={(value) => handleChange('type', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(WorkOrderType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
                     </SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="fameNumber">Fame Number</Label>
+              <Input
+                id="fameNumber"
+                value={formData.fameNumber}
+                onChange={(e) => handleChange('fameNumber', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="clientName">Client Name</Label>
+              <Input
+                id="clientName"
+                value={formData.clientName}
+                onChange={(e) => handleChange('clientName', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="clientPhone">Client Phone</Label>
+              <Input
+                id="clientPhone"
+                type="tel"
+                value={formData.clientPhone}
+                onChange={(e) => handleChange('clientPhone', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="clientEmail">Client Email</Label>
+              <Input
+                id="clientEmail"
+                type="email"
+                value={formData.clientEmail}
+                onChange={(e) => handleChange('clientEmail', e.target.value)}
+              />
+            </div>
+
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                type="datetime-local"
+                id="startDate"
+                name="startDate"
+                value={formData.startDate}
+                onChange={(e) => handleChange('startDate', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="endDate">End Date</Label>
+              <Input
+                type="datetime-local"
+                id="endDate"
+                name="endDate"
+                value={formData.endDate}
+                onChange={(e) => handleChange('endDate', e.target.value)}
+                min={formData.startDate}
+              />
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="assignedTo">Assigned To</Label>
+              <Select
+                onValueChange={(value) => handleChange('assignedToId', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select technician" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    .filter(user => user.role === 'TECHNICIAN')
+                    .map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {`${user.firstName} ${user.lastName}`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="supervisor">Supervisor</Label>
+              <Select
+                onValueChange={(value) => handleChange('supervisorId', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supervisor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    .filter(user => user.role === 'SUPERVISOR')
+                    .map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {`${user.firstName} ${user.lastName}`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="supervisor">Supervisor</Label>
-            <Select
-              onValueChange={(value) => handleChange('supervisorId', value)}
-              required
+          <div className="button-group">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full sm:w-auto"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select supervisor" />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .filter(user => user.role === 'SUPERVISOR')
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {`${user.firstName} ${user.lastName}`}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex gap-4">
-            <Button type="submit" disabled={loading}>
               {loading ? 'Creating...' : 'Create Work Order'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => router.back()}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
           </div>

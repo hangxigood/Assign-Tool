@@ -4,10 +4,119 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
+/* Custom container component with responsive max-widths */
+@layer components {
+  .container {
+    @apply px-6 sm:px-8 md:px-12 lg:px-16 xl:px-24 mx-auto;
+    max-width: 100%;
+    
+    /* Responsive breakpoints for container width */
+    @screen sm {  /* >= 768px */
+      max-width: 768px;
+    }
+    
+    @screen md {  /* >= 1024px */
+      max-width: 1024px;
+    }
+    
+    @screen lg {  /* >= 1280px */
+      max-width: 1280px;
+    }
+    
+    @screen xl {  /* >= 1536px */
+      max-width: 1536px;
+    }
+  }
+}
+
+/* Typography utility classes for responsive text sizing */
+@layer utilities {
+  /* Base text that scales from small to normal */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+  
+  /* Large headings that scale up with screen size */
+  .heading-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl font-bold;
+  }
+  
+  /* Subheadings with medium emphasis */
+  .subheading-responsive {
+    @apply text-lg sm:text-xl md:text-2xl font-semibold;
+  }
+}
+
+/* Spacing utility classes for consistent layout */
+@layer utilities {
+  /* Vertical padding that increases with screen size */
+  .section-padding {
+    @apply py-4 sm:py-6 md:py-8 lg:py-10;
+  }
+  
+  /* Vertical spacing between elements */
+  .content-spacing {
+    @apply space-y-4 sm:space-y-6;
+  }
+}
+
+/* Grid layout utility classes */
+@layer utilities {
+  /* Responsive grid that adapts from 1 to 3 columns */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+  
+  /* Two-column form layout on larger screens */
+  .form-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+  }
+}
+
+/* Form-specific component classes */
+@layer components {
+  /* Container for forms with max-width limits */
+  .form-container {
+    @apply max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto;
+  }
+  
+  /* Consistent spacing for form input groups */
+  .input-group {
+    @apply space-y-2;
+  }
+  
+  /* Button groups that stack on mobile */
+  .button-group {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4;
+  }
+}
+
+/* Table component classes */
+@layer components {
+  /* Responsive table container with horizontal scroll */
+  .table-container {
+    @apply w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800;
+  }
+  
+  /* Base table styles with dividers */
+  .responsive-table {
+    @apply min-w-full divide-y divide-gray-200 dark:divide-gray-800;
+  }
+  
+  /* Table header styling */
+  .table-header {
+    @apply bg-gray-50 dark:bg-gray-800;
+  }
+}
+
+/* Theme configuration for light mode */
 @layer base {
   :root {
+    /* Color variables for light theme */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -34,7 +143,10 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
+  /* Theme configuration for dark mode */
   .dark {
+    /* Color variables for dark theme */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -62,11 +174,27 @@ body {
   }
 }
 
+/* Base styles for common elements */
 @layer base {
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    @apply antialiased; /* Smooth font rendering */
+    @apply min-h-screen; /* Full viewport height */
+  }
+  
+  /* Typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight; /* Tighter letter spacing for headings */
+  }
+  
+  /* Accessibility improvements for touch targets */
+  button, a {
+    @apply cursor-pointer;
+    min-height: 44px; /* Minimum touch target size */
+    min-width: 44px;
   }
 }

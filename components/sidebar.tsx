@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, Clock, LogOut, Truck, PenTool, Box } from 'lucide-react'
+import { Calendar, Clock, LogOut, Truck, PenTool, Box, X } from 'lucide-react'
 import { useSession, signOut } from "next-auth/react"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 
@@ -104,7 +104,13 @@ function WorkOrderItem({ workOrder, onSelect }: {
   );
 }
 
-export function Sidebar({ onEventSelect }: { onEventSelect: (event: any) => void }) {
+interface SidebarProps {
+  onEventSelect: (event: any) => void
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
   const { data: session } = useSession()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
 
@@ -136,37 +142,64 @@ export function Sidebar({ onEventSelect }: { onEventSelect: (event: any) => void
   }, [session])
 
   return (
-    <div className="w-64 border-r bg-gray-800 text-white">
-      <div className="p-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">
-            Hello, {session?.user?.firstName || 'User'}
-          </h2>
-          <Button
-            variant="ghost"
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="flex items-center justify-between p-4">
+          <h2 className="text-xl font-bold">Hello, User</h2>
+          <Button 
+            variant="ghost" 
             size="icon"
-            className="text-gray-400 hover:text-white hover:bg-gray-700"
-            onClick={() => signOut({ callbackUrl: '/auth/login' })}
+            className="lg:hidden"
+            onClick={onClose}
           >
-            <LogOut className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
-          <ScrollArea className="h-[calc(100vh-150px)] mt-2">
-            <div className="space-y-4">
-              {workOrders.map((workOrder) => (
-                <WorkOrderItem key={workOrder.id} workOrder={workOrder} onSelect={onEventSelect} />
-              ))}
-              {workOrders.length === 0 && (
-                <div className="text-sm text-gray-400 text-center py-4">
-                  No work orders found
-                </div>
-              )}
+
+        <ScrollArea className="h-[calc(100vh-64px)]">
+          <div className="p-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">
+                Hello, {session?.user?.firstName || 'User'}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                onClick={() => signOut({ callbackUrl: '/auth/login' })}
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
-          </ScrollArea>
-        </div>
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
+              <div className="space-y-4 mt-2">
+                {workOrders.map((workOrder) => (
+                  <WorkOrderItem key={workOrder.id} workOrder={workOrder} onSelect={onEventSelect} />
+                ))}
+                {workOrders.length === 0 && (
+                  <div className="text-sm text-gray-400 text-center py-4">
+                    No work orders found
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
       </div>
-    </div>
+    </>
   )
 }

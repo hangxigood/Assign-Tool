@@ -37,12 +37,12 @@ export function StatsBar() {
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-4 border-t bg-gray-800 p-4 text-white">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 border-t bg-gray-800 p-4 text-white">
       {statsConfig.map((stat) => (
         <div key={stat.id} className="flex items-center justify-between rounded-lg bg-gray-700 p-4">
           <div>
-            <h3 className="text-sm font-medium">{stat.title}</h3>
-            <p className="text-2xl font-bold">
+            <h3 className="text-responsive font-medium">{stat.title}</h3>
+            <p className="text-xl sm:text-2xl font-bold">
               {loading ? (
                 <span className="animate-pulse">Loading...</span>
               ) : (
