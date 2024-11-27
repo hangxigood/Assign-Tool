@@ -1,43 +1,23 @@
 "use client"
 
+/**
+ * @fileoverview Main sidebar component for work order navigation and management
+ * @module Sidebar
+ */
+
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, Clock, LogOut, Truck, PenTool, Box, X } from 'lucide-react'
+import { Calendar, LogOut, Truck, PenTool, Box, X } from 'lucide-react'
 import { useSession, signOut } from "next-auth/react"
-import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
+import { WorkOrderType } from "@prisma/client"
+import { WorkOrder, WorkOrderEvent, toWorkOrderEvent, formatDateTime } from "@/types/workorder"
 
-interface WorkOrder {
-  id: string
-  title: string
-  fameNumber: string
-  type: WorkOrderType
-  status: WorkOrderStatus
-  startDate: string
-  endDate: string
-  clientName: string
-  assignedTo: {
-    firstName: string
-    lastName: string
-  }
-  supervisor: {
-    firstName: string
-    lastName: string
-  }
-}
-
-function formatDateTime(dateStr: string) {
-  const date = new Date(dateStr)
-  return date.toLocaleString('en-US', {
-    month: 'numeric',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true
-  })
-}
-
+/**
+ * Get the appropriate icon component for a work order type
+ * @param {WorkOrderType} type - The type of work order
+ * @returns {JSX.Element} Icon component
+ */
 function getWorkOrderIcon(type: WorkOrderType) {
   switch (type) {
     case "PICKUP":
@@ -53,27 +33,19 @@ function getWorkOrderIcon(type: WorkOrderType) {
   }
 }
 
+/**
+ * Individual work order item component
+ * @component
+ * @param {Object} props - Component props
+ * @param {WorkOrder} props.workOrder - The work order to display
+ * @param {function} props.onSelect - Callback when the work order is selected
+ */
 function WorkOrderItem({ workOrder, onSelect }: { 
   workOrder: WorkOrder, 
-  onSelect: (event: any) => void 
+  onSelect: (event: WorkOrderEvent) => void 
 }) {
   const handleClick = () => {
-    const event = {
-      id: workOrder.id,
-      title: `${workOrder.fameNumber} - ${workOrder.clientName}`,
-      start: new Date(workOrder.startDate),
-      end: new Date(workOrder.endDate),
-      type: workOrder.type,
-      status: workOrder.status,
-      clientName: workOrder.clientName,
-      extendedProps: {
-        type: workOrder.type,
-        status: workOrder.status,
-        clientName: workOrder.clientName,
-        assignedTo: `${workOrder.assignedTo.firstName} ${workOrder.assignedTo.lastName}`,
-        supervisor: workOrder.supervisor ? `${workOrder.supervisor.firstName} ${workOrder.supervisor.lastName}` : ''
-      }
-    };
+    const event = toWorkOrderEvent(workOrder);
     onSelect(event);
   };
 
@@ -104,12 +76,23 @@ function WorkOrderItem({ workOrder, onSelect }: {
   );
 }
 
+/**
+ * Props for the Sidebar component
+ */
 interface SidebarProps {
-  onEventSelect: (event: any) => void
+  /** Callback function when an event is selected */
+  onEventSelect: (event: WorkOrderEvent) => void
+  /** Whether the sidebar is open */
   isOpen: boolean
+  /** Callback function to close the sidebar */
   onClose: () => void
 }
 
+/**
+ * Main sidebar component for work order navigation
+ * @component
+ * @param {SidebarProps} props - Component props
+ */
 export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
   const { data: session } = useSession()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])

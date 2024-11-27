@@ -1,52 +1,51 @@
+'use client'
+
+/**
+ * @fileoverview Dialog component for editing work order details
+ * @module WorkOrderEditDialog
+ */
+
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { useState, useEffect } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect, FormEvent } from "react"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
+import { WorkOrderEvent, WorkOrderFormData, toWorkOrderFormData } from "@/types/workorder"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
+/**
+ * Props for the User interface
+ */
 interface User {
+  /** Unique identifier for the user */
   id: string;
+  /** Full name of the user */
   name: string;
 }
 
+/**
+ * Props for the WorkOrderEditDialog component
+ */
 interface WorkOrderEditDialogProps {
-  workOrder: {
-    id: string
-    type: WorkOrderType
-    status: WorkOrderStatus
-    fameNumber: string
-    clientName: string
-    clientPhone: string
-    clientEmail: string
-    startDate: Date
-    endDate: Date
-    pickupLocationId: string
-    deliveryLocationId: string
-    assignedToId: string
-    supervisorId: string
-    createdById: string
-  } | null
+  /** The work order to edit */
+  workOrder: WorkOrderEvent | null
+  /** Whether the dialog is open */
   open: boolean
+  /** Callback function when dialog open state changes */
   onOpenChange: (open: boolean) => void
-  onSave: (workOrder: any) => void
+  /** Callback function when work order is saved */
+  onSave: () => void
+  /** Optional callback function when work order is deleted */
   onDelete?: () => void
 }
 
+/**
+ * Dialog component for editing work order details
+ * @component
+ * @param {WorkOrderEditDialogProps} props - Component props
+ */
 export function WorkOrderEditDialog({
   workOrder,
   open,
@@ -56,52 +55,34 @@ export function WorkOrderEditDialog({
 }: WorkOrderEditDialogProps) {
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
-  const [formData, setFormData] = useState<{
-    id: string;
-    type: WorkOrderType;
-    status: WorkOrderStatus;
-    fameNumber: string;
-    clientName: string;
-    clientPhone: string;
-    clientEmail: string;
-    startDate: string;
-    endDate: string;
-    pickupLocationId: string;
-    deliveryLocationId: string;
-    assignedToId: string;
-    supervisorId: string;
-    createdById: string;
-  } | null>(workOrder ? {
-    id: workOrder.id || '',
-    type: workOrder.type || WorkOrderType.PICKUP,
-    status: workOrder.status || WorkOrderStatus.PENDING,
-    fameNumber: workOrder.fameNumber || '',
-    clientName: workOrder.clientName || '',
-    clientPhone: workOrder.clientPhone || '',
-    clientEmail: workOrder.clientEmail || '',
-    startDate: workOrder.startDate?.toISOString().slice(0, 16) || new Date().toISOString().slice(0, 16),
-    endDate: workOrder.endDate?.toISOString().slice(0, 16) || '',
-    pickupLocationId: workOrder.pickupLocationId || '',
-    deliveryLocationId: workOrder.deliveryLocationId || '',
-    assignedToId: workOrder.assignedToId || '',
-    supervisorId: workOrder.supervisorId || '',
-    createdById: workOrder.createdById || ''
-  } : null);
+  const [formData, setFormData] = useState<WorkOrderFormData>(getDefaultFormData());
+
+  // Update form data when workOrder changes
+  useEffect(() => {
+    if (workOrder) {
+      setFormData(toWorkOrderFormData(workOrder));
+    } else {
+      setFormData(getDefaultFormData());
+    }
+  }, [workOrder]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const [techResponse, supervisorResponse] = await Promise.all([
-          fetch('/api/users?role=TECHNICIAN'),
-          fetch('/api/users?role=SUPERVISOR')
+          fetch('/api/users/?role=technicians'),
+          fetch('/api/users/?role=supervisors')
         ]);
-        
-        if (!techResponse.ok) throw new Error('Failed to fetch technicians');
-        if (!supervisorResponse.ok) throw new Error('Failed to fetch supervisors');
-        
-        const techData = await techResponse.json();
-        const supervisorData = await supervisorResponse.json();
-        
+
+        if (!techResponse.ok || !supervisorResponse.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const [techData, supervisorData] = await Promise.all([
+          techResponse.json(),
+          supervisorResponse.json()
+        ]);
+
         setTechnicians(techData);
         setSupervisors(supervisorData);
       } catch (error) {
@@ -109,24 +90,25 @@ export function WorkOrderEditDialog({
       }
     };
 
-    fetchUsers();
-  }, []);
+    if (open) {
+      fetchUsers();
+    }
+  }, [open]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
       const response = await fetch(`/api/workorders/${workOrder?.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       })
       
       if (!response.ok) throw new Error('Failed to update work order')
       
-      const updatedWorkOrder = await response.json()
-      onSave(updatedWorkOrder)
+      onSave()
       onOpenChange(false)
     } catch (error) {
       console.error('Error updating work order:', error)
@@ -163,11 +145,8 @@ export function WorkOrderEditDialog({
             <div className="input-group">
               <Label htmlFor="type">Type</Label>
               <Select
-                value={formData?.type || WorkOrderType.PICKUP}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  type: value as WorkOrderType 
-                } : null)}
+                value={formData.type}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as WorkOrderType }))}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select type" />
@@ -185,11 +164,8 @@ export function WorkOrderEditDialog({
             <div className="input-group">
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData?.status || WorkOrderStatus.PENDING}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  status: value as WorkOrderStatus 
-                } : null)}
+                value={formData.status}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as WorkOrderStatus }))}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select status" />
@@ -208,8 +184,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="fameNumber">Fame Number</Label>
               <Input
                 id="fameNumber"
-                value={formData?.fameNumber || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, fameNumber: e.target.value } : null)}
+                value={formData.fameNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, fameNumber: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -218,8 +194,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="clientName">Client Name</Label>
               <Input
                 id="clientName"
-                value={formData?.clientName || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, clientName: e.target.value } : null)}
+                value={formData.clientName}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -228,8 +204,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="clientPhone">Client Phone</Label>
               <Input
                 id="clientPhone"
-                value={formData?.clientPhone || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, clientPhone: e.target.value } : null)}
+                value={formData.clientPhone}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -238,8 +214,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="clientEmail">Client Email</Label>
               <Input
                 id="clientEmail"
-                value={formData?.clientEmail || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, clientEmail: e.target.value } : null)}
+                value={formData.clientEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -249,8 +225,8 @@ export function WorkOrderEditDialog({
               <Input
                 type="datetime-local"
                 id="startDate"
-                value={formData?.startDate || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, startDate: e.target.value } : null)}
+                value={formData.startDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -260,8 +236,8 @@ export function WorkOrderEditDialog({
               <Input
                 type="datetime-local"
                 id="endDate"
-                value={formData?.endDate || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, endDate: e.target.value } : null)}
+                value={formData.endDate || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -270,8 +246,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="pickupLocationId">Pickup Location</Label>
               <Input
                 id="pickupLocationId"
-                value={formData?.pickupLocationId || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, pickupLocationId: e.target.value } : null)}
+                value={formData.pickupLocationId}
+                onChange={(e) => setFormData(prev => ({ ...prev, pickupLocationId: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -280,8 +256,8 @@ export function WorkOrderEditDialog({
               <Label htmlFor="deliveryLocationId">Delivery Location</Label>
               <Input
                 id="deliveryLocationId"
-                value={formData?.deliveryLocationId || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, deliveryLocationId: e.target.value } : null)}
+                value={formData.deliveryLocationId}
+                onChange={(e) => setFormData(prev => ({ ...prev, deliveryLocationId: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -289,11 +265,8 @@ export function WorkOrderEditDialog({
             <div className="input-group">
               <Label htmlFor="assignedToId">Assigned To</Label>
               <Select
-                value={formData?.assignedToId || ''}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  assignedToId: value
-                } : null)}
+                value={formData.assignedToId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select technician" />
@@ -311,11 +284,8 @@ export function WorkOrderEditDialog({
             <div className="input-group">
               <Label htmlFor="supervisorId">Supervisor</Label>
               <Select
-                value={formData?.supervisorId || ''}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  supervisorId: value
-                } : null)}
+                value={formData.supervisorId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, supervisorId: value }))}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select supervisor" />
@@ -359,4 +329,27 @@ export function WorkOrderEditDialog({
       </DialogContent>
     </Dialog>
   )
+}
+
+/**
+ * Returns the default form data for a new work order
+ * @returns {WorkOrderFormData} Default form data
+ */
+function getDefaultFormData(): WorkOrderFormData {
+  return {
+    id: '',
+    title: '',
+    fameNumber: '',
+    type: WorkOrderType.PICKUP,
+    status: WorkOrderStatus.PENDING,
+    startDate: new Date().toISOString().slice(0, 16),
+    endDate: null,
+    clientName: '',
+    clientEmail: '',
+    clientPhone: '',
+    pickupLocationId: '',
+    deliveryLocationId: '',
+    assignedToId: '',
+    supervisorId: ''
+  }
 }

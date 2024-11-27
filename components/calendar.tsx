@@ -1,60 +1,30 @@
 "use client"
 
+/**
+ * @fileoverview Main calendar component for displaying and managing work orders
+ * @module Calendar
+ */
+
 import { useState, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import { Button } from "@/components/ui/button"
-import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { WorkOrderEvent, WorkOrder, toWorkOrderEvent } from "@/types/workorder"
+import { CalendarApi, EventClickArg, EventDropArg } from '@fullcalendar/core'
 
-interface WorkOrderEvent {
-  id: string
-  title: string
-  start: Date
-  end: Date
-  backgroundColor?: string
-  borderColor?: string
-  type: WorkOrderType
-  status: WorkOrderStatus
-  clientName: string
-  extendedProps: {
-    type: WorkOrderType
-    status: WorkOrderStatus
-    clientName: string
-    assignedTo: string
-    supervisor: string
-  }
-}
-
-const getEventColor = (type: WorkOrderType) => {
-  switch (type) {
-    case "PICKUP":
-      return { backgroundColor: "#3b82f6", borderColor: "#2563eb" }
-    case "DELIVERY":
-      return { backgroundColor: "#10b981", borderColor: "#059669" }
-    case "SETUP":
-      return { backgroundColor: "#f59e0b", borderColor: "#d97706" }
-    case "ACTIVATION":
-      return { backgroundColor: "#8b5cf6", borderColor: "#7c3aed" }
-    case "TEARDOWN":
-      return { backgroundColor: "#ef4444", borderColor: "#dc2626" }
-    default:
-      return { backgroundColor: "#6b7280", borderColor: "#4b5563" }
-  }
-}
-
+/**
+ * Calendar component for displaying work orders in a time grid view
+ * @component
+ * @param {Object} props - Component props
+ * @param {function} props.onEventSelect - Callback function when an event is selected
+ */
 export function Calendar({
-  onEventSelect,
-  selectedEvent
+  onEventSelect
 }: {
   onEventSelect: (event: WorkOrderEvent | null) => void
-  selectedEvent: WorkOrderEvent | null
 }) {
-  const [view, setView] = useState<"timeGridDay" | "timeGridWeek">("timeGridDay")
   const [events, setEvents] = useState<WorkOrderEvent[]>([])
-  const [calendarApi, setCalendarApi] = useState<any>(null)
-  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [calendarApi, setCalendarApi] = useState<CalendarApi | null>(null)
 
   useEffect(() => {
     const fetchWorkOrders = async () => {
@@ -62,36 +32,12 @@ export function Calendar({
         console.log('Fetching work orders...');
         const response = await fetch('/api/workorders');
         if (!response.ok) throw new Error('Failed to fetch work orders');
-        const workOrders = await response.json();
+        const workOrders: WorkOrder[] = await response.json();
         console.log('Fetched work orders:', workOrders);
         
-        const calendarEvents = workOrders.map((order: any) => {
+        const calendarEvents = workOrders.map((order: WorkOrder) => {
           console.log('Processing order:', order);
-          const colors = getEventColor(order.type);
-          
-          // Convert UTC dates to local timezone
-          const startDate = new Date(order.startDate);
-          const endDate = order.endDate 
-            ? new Date(order.endDate)
-            : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-
-          const event = {
-            id: order.id,
-            title: `${order.fameNumber} - ${order.clientName}`,
-            start: startDate,
-            end: endDate,
-            ...colors,
-            type: order.type,
-            status: order.status,
-            clientName: order.clientName,
-            extendedProps: {
-              type: order.type,
-              status: order.status,
-              clientName: order.clientName,
-              assignedTo: `${order.assignedTo.firstName} ${order.assignedTo.lastName}`,
-              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : ''
-            }
-          };
+          const event = toWorkOrderEvent(order);
           console.log('Created event:', event);
           return event;
         });
@@ -106,7 +52,7 @@ export function Calendar({
     fetchWorkOrders();
   }, [])
 
-  const handleEventDrop = async (info: any) => {
+  const handleEventDrop = async (info: EventDropArg) => {
     const { event } = info
     try {
       const response = await fetch(`/api/workorders/${event.id}`, {
@@ -128,36 +74,6 @@ export function Calendar({
       console.error('Error updating work order:', error)
       info.revert()
     }
-  }
-
-  const handlePrevClick = () => {
-    if (calendarApi) {
-      calendarApi.prev()
-      setCurrentDate(calendarApi.getDate())
-    }
-  }
-
-  const handleNextClick = () => {
-    if (calendarApi) {
-      calendarApi.next()
-      setCurrentDate(calendarApi.getDate())
-    }
-  }
-
-  const handleTodayClick = () => {
-    if (calendarApi) {
-      calendarApi.today()
-      setCurrentDate(calendarApi.getDate())
-    }
-  }
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date)
   }
 
   return (
@@ -182,7 +98,8 @@ export function Calendar({
             slotDuration: '01:00:00',
           }
         }}
-        windowResize={function(view) {
+        windowResize={() => {
+          if (!calendarApi) return;
           if (window.innerWidth < 768) {
             calendarApi.changeView('timeGridDay');
           } else {
@@ -210,7 +127,7 @@ export function Calendar({
             </div>
           )
         }}
-        eventClick={(info) => {
+        eventClick={(info: EventClickArg) => {
           onEventSelect(info.event as unknown as WorkOrderEvent)
         }}
       />

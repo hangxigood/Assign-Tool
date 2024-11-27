@@ -12,19 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { WorkOrderStatus, WorkOrderType } from '@prisma/client';
-
-type WorkOrder = {
-  id: string;
-  type: WorkOrderType;
-  status: WorkOrderStatus;
-  fameNumber: string;
-  clientName: string;
-  clientPhone: string;
-  startDate: Date;
-  endDate: Date | null;
-  assignedTo: { firstName: string; lastName: string };
-};
+import { WorkOrder } from '@/types/workorder';
 
 export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);

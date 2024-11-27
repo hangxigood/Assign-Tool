@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from "react"
-import { Calendar } from "@/components/calendar"
-import { Sidebar } from "@/components/sidebar"
-import { StatsBar } from "@/components/stats-bar"
-import { EventDetailsSidebar } from "@/components/event-details-sidebar"
+import { Calendar } from "@/components/Calendar"
+import { Sidebar } from "@/components/Sidebar"
+import { StatsBar } from "@/components/StatsBar"
+import { EventDetailsSidebar } from "@/components/EventDetailsSidebar"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WorkOrderEvent } from "@/types/workorder"
 
 export default function Page() {
-  const [selectedEvent, setSelectedEvent] = useState<any>(null)
+  const [selectedEvent, setSelectedEvent] = useState<WorkOrderEvent | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
@@ -32,7 +33,7 @@ export default function Page() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 p-4 overflow-x-auto overflow-y-hidden mt-14 lg:mt-0">
-              <Calendar onEventSelect={setSelectedEvent} selectedEvent={selectedEvent} />
+              <Calendar onEventSelect={setSelectedEvent} />
             </div>
             <StatsBar />
           </main>

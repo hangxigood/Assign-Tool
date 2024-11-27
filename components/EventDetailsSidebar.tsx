@@ -1,56 +1,34 @@
 'use client'
 
+/**
+ * @fileoverview Sidebar component for displaying work order event details
+ * @module EventDetailsSidebar
+ */
+
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, Edit } from 'lucide-react'
-import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
+import { WorkOrderEvent } from "@/types/workorder"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from 'next/navigation'
-import { WorkOrderEditDialog } from "./work-order-edit-dialog"
+import { WorkOrderEditDialog } from "./WorkOrderEditDialog"
 
-export interface EventDetailsProps {
-  event: {
-    id: string
-    title: string
-    start: Date
-    end: Date
-    type: WorkOrderType
-    status: WorkOrderStatus
-    clientName: string
-    assignedTo: string
-    supervisor: string
-    supervisorId: string
-    fameNumber: string
-    clientPhone: string
-    clientEmail: string
-    startDate: Date
-    endDate: Date
-    pickupLocationId: string
-    deliveryLocationId: string
-    assignedToId: string
-    createdById: string
-    extendedProps: {
-      type: WorkOrderType
-      status: WorkOrderStatus
-      clientName: string
-      assignedTo: string
-      supervisor: string
-      supervisorId: string
-      fameNumber: string
-      clientPhone: string
-      clientEmail: string
-      startDate: Date
-      endDate: Date
-      pickupLocationId: string
-      deliveryLocationId: string
-      assignedToId: string
-      createdById: string
-    }
-  } | null
+/**
+ * Props for the EventDetailsSidebar component
+ */
+interface EventDetailsSidebarProps {
+  /** The work order event to display details for */
+  event: WorkOrderEvent | null
+  /** Callback function when the sidebar is closed */
   onClose: () => void
 }
 
-export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
+/**
+ * Sidebar component that displays detailed information about a selected work order event
+ * @component
+ * @param {EventDetailsSidebarProps} props - Component props
+ */
+export function EventDetailsSidebar({ event, onClose }: EventDetailsSidebarProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -63,22 +41,19 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose, editDialogOpen]);
+  }, [onClose, editDialogOpen]); // Add editDialogOpen to dependencies
 
   const handleEdit = () => {
     setEditDialogOpen(true)
   }
 
-  const handleSave = (updatedWorkOrder: any) => {
-    // Update the event with new data
-    if (event) {
-      // You might want to refresh the calendar or update the local state here
-      window.location.reload() // For now, just reload the page
-    }
+  const handleSave = () => {
+    // Refresh the page to show updated data
+    router.refresh();
   }
 
   if (!event) return null;
@@ -125,27 +100,19 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             </div>
             <div>
               <h3 className="font-medium">Assigned To</h3>
-              <p>{event.assignedTo}</p>
+              <p>{event.extendedProps.assignedTo}</p>
             </div>
             <div>
               <h3 className="font-medium">Supervisor</h3>
-              <p>{event.supervisor}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Supervisor ID</h3>
-              <p>{event.supervisorId}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Fame Number</h3>
-              <p>{event.extendedProps.fameNumber}</p>
+              <p>{event.extendedProps.supervisor}</p>
             </div>
             <div>
               <h3 className="font-medium">Client Phone</h3>
-              <p>{event.extendedProps.clientPhone}</p>
+              <p>{event.clientPhone}</p>
             </div>
             <div>
               <h3 className="font-medium">Client Email</h3>
-              <p>{event.extendedProps.clientEmail}</p>
+              <p>{event.clientEmail}</p>
             </div>
           </div>
         </ScrollArea>

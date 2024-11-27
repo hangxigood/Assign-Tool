@@ -26,7 +26,6 @@ export default function EditWorkOrder({ params }: PageProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [workOrder, setWorkOrder] = useState<any>(null);
   const [formData, setFormData] = useState({
     type: '',
     status: '',
@@ -47,7 +46,6 @@ export default function EditWorkOrder({ params }: PageProps) {
         if (!response.ok) throw new Error('Failed to fetch work order');
         const data = await response.json();
         
-        setWorkOrder(data);
         setFormData({
           type: data.type || '',
           status: data.status || '',
