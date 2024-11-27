@@ -5,11 +5,18 @@ import { UserRole } from '@prisma/client';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const role = searchParams.get('role');
+    const roleParam = searchParams.get('role')?.toUpperCase();
+    
+    let role: UserRole | undefined;
+    if (roleParam === 'TECHNICIANS') {
+      role = UserRole.TECHNICIAN;
+    } else if (roleParam === 'SUPERVISORS') {
+      role = UserRole.SUPERVISOR;
+    }
 
     const users = await prisma.user.findMany({
       where: role ? {
-        role: role as UserRole
+        role: role
       } : undefined,
       select: {
         id: true,
