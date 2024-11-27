@@ -114,22 +114,47 @@ export function WorkOrderEditDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData || !workOrder?.id) {
+      throw new Error('No work order data to update');
+    }
+
     try {
-      const response = await fetch(`/api/workorders/${workOrder?.id}`, {
+      const response = await fetch(`/api/workorders/${workOrder.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
-      })
+        body: JSON.stringify({
+          ...formData,
+          // Enviamos los IDs como están, el servidor los manejará con connect
+          pickupLocationId: formData.pickupLocationId,
+          deliveryLocationId: formData.deliveryLocationId,
+          assignedToId: formData.assignedToId,
+          supervisorId: formData.supervisorId,
+        }),
+      });
       
-      if (!response.ok) throw new Error('Failed to update work order')
+      const responseText = await response.text();
+      let data;
       
-      const updatedWorkOrder = await response.json()
-      onSave(updatedWorkOrder)
-      onOpenChange(false)
-    } catch (error) {
-      console.error('Error updating work order:', error)
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response:', responseText);
+        throw new Error('Invalid response from server');
+      }
+      
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to update work order');
+      }
+      
+      // La respuesta ahora incluye los objetos completos de las relaciones
+      onSave(data.data);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Error updating work order:', error);
+      throw error instanceof Error ? error : new Error('Failed to update work order');
     }
   }
 
