@@ -1,4 +1,4 @@
-import "@/styles/globals.css"
+import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { Metadata } from "next"
 import { getServerSession } from 'next-auth';
@@ -20,6 +20,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
       <body suppressHydrationWarning className={inter.className}>
         <SessionProvider session={session}>
           {children}

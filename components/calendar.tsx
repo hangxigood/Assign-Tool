@@ -161,93 +161,59 @@ export function Calendar({
   }
 
   return (
-    <div className="flex flex-col gap-4 bg-white rounded-lg shadow p-4 h-full">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <div className="flex gap-2">
-            <Button
-              variant={view === "timeGridDay" ? "default" : "outline"}
-              onClick={() => {
-                setView("timeGridDay")
-                if (calendarApi) {
-                  calendarApi.changeView("timeGridDay")
-                }
-              }}
-            >
-              Day
-            </Button>
-            <Button
-              variant={view === "timeGridWeek" ? "default" : "outline"}
-              onClick={() => {
-                setView("timeGridWeek")
-                if (calendarApi) {
-                  calendarApi.changeView("timeGridWeek")
-                }
-              }}
-            >
-              Week
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handlePrevClick}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleTodayClick}
-            >
-              {view === "timeGridDay" ? "Today" : "This Week"}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNextClick}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="text-sm font-medium">
-            {formatDate(currentDate)}
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1">
-          <FullCalendar
-            plugins={[timeGridPlugin, interactionPlugin]}
-            initialView={view}
-            headerToolbar={false}
-            allDaySlot={false}
-            slotMinTime="00:00:00"
-            slotMaxTime="24:00:00"
-            events={events}
-            editable={true}
-            eventDrop={handleEventDrop}
-            ref={(el) => {
-              if (el) {
-                setCalendarApi(el.getApi())
-              }
-            }}
-            eventContent={(arg) => {
-              const event = arg.event
-              return (
-                <div className="p-1">
-                  <div className="font-medium">{event.title}</div>
-                  <div>Assigned: {event.extendedProps.assignedTo}</div>
-                  <div>Supervisor: {event.extendedProps.supervisor}</div>
-                </div>
-              )
-            }}
-            eventClick={(info) => {
-              onEventSelect(info.event as unknown as WorkOrderEvent)
-            }}
-          />
-        </div>
-      </div>
+    <div className="h-full">
+      <FullCalendar
+        height="100%"
+        plugins={[timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        headerToolbar={{
+          left: 'prev,next',
+          center: 'title',
+          right: 'timeGridDay,timeGridWeek'
+        }}
+        views={{
+          timeGridWeek: {
+            titleFormat: { month: 'short', day: 'numeric' },
+            dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+            slotDuration: '01:00:00',
+          },
+          timeGridDay: {
+            titleFormat: { month: 'short', day: 'numeric' },
+            slotDuration: '01:00:00',
+          }
+        }}
+        windowResize={function(view) {
+          if (window.innerWidth < 768) {
+            calendarApi.changeView('timeGridDay');
+          } else {
+            calendarApi.changeView('timeGridWeek');
+          }
+        }}
+        allDaySlot={false}
+        slotMinTime="00:00:00"
+        slotMaxTime="24:00:00"
+        events={events}
+        editable={true}
+        eventDrop={handleEventDrop}
+        ref={(el) => {
+          if (el) {
+            setCalendarApi(el.getApi())
+          }
+        }}
+        eventContent={(arg) => {
+          const event = arg.event
+          return (
+            <div className="p-1">
+              <div className="font-medium">{event.title}</div>
+              <div>Assigned: {event.extendedProps.assignedTo}</div>
+              <div>Supervisor: {event.extendedProps.supervisor}</div>
+            </div>
+          )
+        }}
+        eventClick={(info) => {
+          onEventSelect(info.event as unknown as WorkOrderEvent)
+        }}
+      />
     </div>
   )
 }

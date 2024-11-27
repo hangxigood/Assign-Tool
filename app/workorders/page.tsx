@@ -69,57 +69,69 @@ export default function WorkOrdersPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Work Orders</h1>
-        <Button onClick={handleCreateNew}>
+    <div className="container section-padding">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="heading-responsive">Work Orders</h1>
+        <Button 
+          onClick={handleCreateNew}
+          className="w-full sm:w-auto"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Create New
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Fame Number</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {workOrders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell>{order.fameNumber}</TableCell>
-              <TableCell>{order.type}</TableCell>
-              <TableCell>{order.status}</TableCell>
-              <TableCell>{order.clientName}</TableCell>
-              <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
-              <TableCell>{`${order.assignedTo.firstName} ${order.assignedTo.lastName}`}</TableCell>
-              <TableCell>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mr-2"
-                  onClick={() => handleEdit(order.id)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(order.id)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="content-spacing">
+        <div className="table-container">
+          <Table className="responsive-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="whitespace-nowrap">Fame Number</TableHead>
+                <TableHead className="hidden sm:table-cell">Type</TableHead>
+                <TableHead className="hidden md:table-cell">Status</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead className="hidden lg:table-cell">Start Date</TableHead>
+                <TableHead className="hidden md:table-cell">Assigned To</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {workOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="whitespace-nowrap">{order.fameNumber}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{order.type}</TableCell>
+                  <TableCell className="hidden md:table-cell">{order.status}</TableCell>
+                  <TableCell>{order.clientName}</TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {new Date(order.startDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {`${order.assignedTo.firstName} ${order.assignedTo.lastName}`}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(order.id)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(order.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   );
 }

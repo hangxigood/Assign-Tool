@@ -152,16 +152,16 @@ export function WorkOrderEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-full max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Work Order</DialogTitle>
+          <DialogTitle className="subheading-responsive">
+            {workOrder ? 'Edit Work Order' : 'Create Work Order'}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
-                Type
-              </Label>
+        <form onSubmit={handleSubmit} className="content-spacing">
+          <div className="form-grid">
+            <div className="input-group">
+              <Label htmlFor="type">Type</Label>
               <Select
                 value={formData?.type || WorkOrderType.PICKUP}
                 onValueChange={(value) => setFormData(prev => prev ? { 
@@ -182,10 +182,8 @@ export function WorkOrderEditDialog({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="status">Status</Label>
               <Select
                 value={formData?.status || WorkOrderStatus.PENDING}
                 onValueChange={(value) => setFormData(prev => prev ? { 
@@ -206,10 +204,8 @@ export function WorkOrderEditDialog({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="fameNumber" className="text-right">
-                Fame Number
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="fameNumber">Fame Number</Label>
               <Input
                 id="fameNumber"
                 value={formData?.fameNumber || ''}
@@ -218,10 +214,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientName" className="text-right">
-                Client Name
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="clientName">Client Name</Label>
               <Input
                 id="clientName"
                 value={formData?.clientName || ''}
@@ -230,10 +224,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientPhone" className="text-right">
-                Client Phone
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="clientPhone">Client Phone</Label>
               <Input
                 id="clientPhone"
                 value={formData?.clientPhone || ''}
@@ -242,10 +234,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientEmail" className="text-right">
-                Client Email
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="clientEmail">Client Email</Label>
               <Input
                 id="clientEmail"
                 value={formData?.clientEmail || ''}
@@ -254,10 +244,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startDate" className="text-right">
-                Start Date
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="startDate">Start Date</Label>
               <Input
                 type="datetime-local"
                 id="startDate"
@@ -267,10 +255,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endDate" className="text-right">
-                End Date
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="endDate">End Date</Label>
               <Input
                 type="datetime-local"
                 id="endDate"
@@ -280,10 +266,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="pickupLocationId" className="text-right">
-                Pickup Location
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="pickupLocationId">Pickup Location</Label>
               <Input
                 id="pickupLocationId"
                 value={formData?.pickupLocationId || ''}
@@ -292,10 +276,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="deliveryLocationId" className="text-right">
-                Delivery Location
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="deliveryLocationId">Delivery Location</Label>
               <Input
                 id="deliveryLocationId"
                 value={formData?.deliveryLocationId || ''}
@@ -304,10 +286,8 @@ export function WorkOrderEditDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="assignedToId" className="text-right">
-                Assigned To
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="assignedToId">Assigned To</Label>
               <Select
                 value={formData?.assignedToId || ''}
                 onValueChange={(value) => setFormData(prev => prev ? { 
@@ -328,10 +308,8 @@ export function WorkOrderEditDialog({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="supervisorId" className="text-right">
-                Supervisor
-              </Label>
+            <div className="input-group">
+              <Label htmlFor="supervisorId">Supervisor</Label>
               <Select
                 value={formData?.supervisorId || ''}
                 onValueChange={(value) => setFormData(prev => prev ? { 
@@ -352,13 +330,14 @@ export function WorkOrderEditDialog({
               </Select>
             </div>
           </div>
-          <DialogFooter className="flex justify-between">
-            <div className="flex gap-2">
-              <Button type="submit">Save changes</Button>
+          
+          <DialogFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
+            <div className="button-group">
+              <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
               {onDelete && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Delete</Button>
+                    <Button variant="destructive" className="w-full sm:w-auto">Delete</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
