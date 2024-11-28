@@ -18,6 +18,8 @@ import {
 import { useState, useEffect } from "react"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useSession } from "next-auth/react";
+import { hasPermission } from "@/lib/permissions";
 
 interface User {
   id: string;
@@ -53,6 +55,7 @@ export function WorkOrderEditDialog({
   onSave,
   onDelete
 }: WorkOrderEditDialogProps) {
+  const { data: session } = useSession();
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
   const [formData, setFormData] = useState<{
@@ -166,6 +169,9 @@ export function WorkOrderEditDialog({
       console.error('Error deleting work order:', error);
     }
   };
+
+  const canEdit = hasPermission(session?.user?.role, 'edit-work-orders');
+  const canAssignTechnicians = hasPermission(session?.user?.role, 'assign-technicians');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -324,11 +330,22 @@ export function WorkOrderEditDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {canAssignTechnicians && (
+              <div className="input-group">
+                <Label htmlFor="technicians">Assign Technicians</Label>
+                {/* Technician assignment fields */}
+              </div>
+            )}
           </div>
           
           <DialogFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
             <div className="button-group">
-              <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
+              {canEdit ? (
+                <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
+              ) : (
+                <p className="text-sm text-muted">You don't have permission to edit work orders</p>
+              )}
               {onDelete && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

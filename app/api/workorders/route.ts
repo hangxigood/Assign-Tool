@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { hasPermission } from "@/lib/permissions";
 
 /**
  * Handles GET requests to retrieve work orders.
@@ -44,9 +45,13 @@ export async function GET() {
  * @param request The incoming request object.
  */
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  
+  if (!hasPermission(session?.user?.role, 'create-work-orders')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
   try {
-    const session = await getServerSession(authOptions);
-    
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }

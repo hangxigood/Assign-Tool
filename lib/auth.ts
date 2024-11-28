@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import { compare } from "bcrypt";
+import { Session } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -36,6 +37,9 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
+          role: user.role,         // Added for authorization
+          firstName: user.firstName, // Added for authorization
+          lastName: user.lastName // Added for authorization
         };
       }
     })
@@ -52,12 +56,12 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: any }) {
       if (session.user) {
         session.user.id = token.id as string;
       }
       return session;
-    }
+    },
   },
   session: {
     strategy: "jwt",

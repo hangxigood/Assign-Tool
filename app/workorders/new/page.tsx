@@ -1,5 +1,6 @@
 'use client';
 
+import { ProtectedRoute } from '@/components/protected-route';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorkOrderType, WorkOrderStatus } from '@prisma/client';
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function NewWorkOrder() {
+function NewWorkOrder() {
   const router = useRouter();
   const { data: session, status } = useSession({
     required: true,
@@ -271,5 +272,13 @@ export default function NewWorkOrder() {
         {loading ? 'Creating...' : 'Create Work Order'}
       </Button>
     </form>
+  );
+}
+
+export default function NewWorkOrderPage() {
+  return (
+    <ProtectedRoute requiredPermission="create-work-orders">
+      <NewWorkOrder />
+    </ProtectedRoute>
   );
 }
