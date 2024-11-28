@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { WorkOrderType, WorkOrderStatus, User } from '@prisma/client';
+import { WorkOrderType, WorkOrderStatus } from '@prisma/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,19 +25,19 @@ export default function EditWorkOrder({ params }: PageProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
   const [workOrder, setWorkOrder] = useState<any>(null);
   const [formData, setFormData] = useState({
     type: '',
     status: '',
     fameNumber: '',
     clientName: '',
+    clientContactName: '',
     clientPhone: '',
-    clientEmail: '',
     startDate: '',
-    endDate: '',
-    assignedToId: '',
-    supervisorId: '',
+    startHour: '',
+    endHour: '',
+    location: '',
+    noteText: '',
   });
 
   useEffect(() => {
@@ -53,42 +53,27 @@ export default function EditWorkOrder({ params }: PageProps) {
           status: data.status || '',
           fameNumber: data.fameNumber || '',
           clientName: data.clientName || '',
+          clientContactName: data.clientContactName || '',
           clientPhone: data.clientPhone || '',
-          clientEmail: data.clientEmail || '',
-          startDate: data.startDate ? new Date(data.startDate).toISOString().slice(0, 16) : '',
-          endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
-          assignedToId: data.assignedToId || '',
-          supervisorId: data.supervisorId || '',
+          startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : '',
+          startHour: data.startHour || '',
+          endHour: data.endHour || '',
+          location: data.location || '',
+          noteText: data.noteText || '',
         });
       } catch (error) {
         console.error('Error fetching work order:', error);
-        // Optionally handle error state
       }
     };
 
     fetchWorkOrder();
   }, [params.id]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/users');
-        if (!response.ok) throw new Error('Failed to fetch users');
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       alert('You must be logged in to edit a work order');
       setLoading(false);
       return;
@@ -191,23 +176,21 @@ export default function EditWorkOrder({ params }: PageProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="clientPhone">Client Phone</Label>
+            <Label htmlFor="clientContactName">Contact Name</Label>
+            <Input
+              id="clientContactName"
+              value={formData.clientContactName}
+              onChange={(e) => handleChange('clientContactName', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="clientPhone">Contact Phone</Label>
             <Input
               id="clientPhone"
               type="tel"
               value={formData.clientPhone}
               onChange={(e) => handleChange('clientPhone', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientEmail">Client Email</Label>
-            <Input
-              id="clientEmail"
-              type="email"
-              value={formData.clientEmail}
-              onChange={(e) => handleChange('clientEmail', e.target.value)}
             />
           </div>
 
@@ -215,7 +198,7 @@ export default function EditWorkOrder({ params }: PageProps) {
             <Label htmlFor="startDate">Start Date</Label>
             <Input
               id="startDate"
-              type="datetime-local"
+              type="date"
               value={formData.startDate}
               onChange={(e) => handleChange('startDate', e.target.value)}
               required
@@ -223,58 +206,43 @@ export default function EditWorkOrder({ params }: PageProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="endDate">End Date</Label>
+            <Label htmlFor="startHour">Start Hour</Label>
             <Input
-              id="endDate"
-              type="datetime-local"
-              value={formData.endDate}
-              onChange={(e) => handleChange('endDate', e.target.value)}
-              min={formData.startDate}
+              id="startHour"
+              type="time"
+              value={formData.startHour}
+              onChange={(e) => handleChange('startHour', e.target.value)}
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="assignedTo">Assigned To</Label>
-            <Select
-              value={formData.assignedToId}
-              onValueChange={(value) => handleChange('assignedToId', value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select technician" />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .filter(user => user.role === 'TECHNICIAN')
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {`${user.firstName} ${user.lastName}`}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="endHour">End Hour</Label>
+            <Input
+              id="endHour"
+              type="time"
+              value={formData.endHour}
+              onChange={(e) => handleChange('endHour', e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="supervisor">Supervisor</Label>
-            <Select
-              value={formData.supervisorId}
-              onValueChange={(value) => handleChange('supervisorId', value)}
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => handleChange('location', e.target.value)}
               required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select supervisor" />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .filter(user => user.role === 'SUPERVISOR')
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {`${user.firstName} ${user.lastName}`}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="noteText">Notes</Label>
+            <Input
+              id="noteText"
+              value={formData.noteText}
+              onChange={(e) => handleChange('noteText', e.target.value)}
+            />
           </div>
 
           <div className="flex justify-end space-x-4">

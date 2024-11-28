@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { WorkOrderType, WorkOrderStatus, User } from '@prisma/client';
+import { WorkOrderType, WorkOrderStatus } from '@prisma/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,6 @@ export default function NewWorkOrder() {
   });
   
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
   const [formData, setFormData] = useState({
     type: '',
     fameNumber: '',
@@ -39,32 +38,7 @@ export default function NewWorkOrder() {
     location: '',
     noteText: '',
     documentUrl: '',
-    assignedToId: '',
-    supervisorId: '',
   });
-
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user) {
-      router.push('/api/auth/signin');
-      return;
-    }
-
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/users');
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchUsers();
-  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +47,7 @@ export default function NewWorkOrder() {
     try {
       // Validar que los campos requeridos estén presentes
       if (!formData.type || !formData.fameNumber || !formData.clientName || 
-          !formData.clientContactName || !formData.clientPhone || !formData.startDate || 
-          !formData.startHour || !formData.location || !formData.assignedToId || 
-          !formData.supervisorId) {
+          !formData.startDate || !formData.startHour || !formData.location) {
         throw new Error('Please fill in all required fields');
       }
 
@@ -98,16 +70,15 @@ export default function NewWorkOrder() {
         type: formData.type,
         fameNumber: formData.fameNumber,
         clientName: formData.clientName,
-        clientContactName: formData.clientContactName,
-        clientPhone: formData.clientPhone,
+        clientContactName: formData.clientContactName || null,
+        clientPhone: formData.clientPhone || null,
         startDate: startDate.toISOString(),
         startHour: formData.startHour,
         endHour: formData.endHour || null,
         location: formData.location,
         noteText: formData.noteText || null,
         documentUrl: formData.documentUrl || null,
-        assignedToId: formData.assignedToId,
-        supervisorId: formData.supervisorId,
+        createdById: session?.user?.id,
       };
 
       const response = await fetch('/api/workorders', {
@@ -177,34 +148,47 @@ export default function NewWorkOrder() {
 
         <div>
           <Label htmlFor="clientName">Client</Label>
-          <Input
-            id="clientName"
-            name="clientName"
+          <Select
             value={formData.clientName}
-            onChange={handleInputChange}
+            onValueChange={(value) => handleSelectChange(value, 'clientName')}
             required
-          />
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select client" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Primary">Primary</SelectItem>
+              <SelectItem value="City of Calgary">City of Calgary</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <Label htmlFor="clientContactName">Client Contact Name</Label>
+          <Label htmlFor="clientContactName">Client Contact Name (Optional)</Label>
           <Input
             id="clientContactName"
             name="clientContactName"
             value={formData.clientContactName}
             onChange={handleInputChange}
-            required
           />
         </div>
 
         <div>
-          <Label htmlFor="clientPhone">Client Contact Phone</Label>
+          <Label htmlFor="clientPhone">Client Contact Phone (Optional)</Label>
           <Input
             id="clientPhone"
             name="clientPhone"
             value={formData.clientPhone}
             onChange={handleInputChange}
-            required
+          />
+        </div>
+
+        <div>
+          <Label>Created By</Label>
+          <Input
+            value={session?.user ? `${session.user.firstName} ${session.user.lastName}` : ''}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
@@ -234,7 +218,6 @@ export default function NewWorkOrder() {
               pattern="[0-9]{2}:[0-9]{2}"
             />
           </div>
-
           <div>
             <Label htmlFor="endHour">End Hour</Label>
             <Input
@@ -258,46 +241,6 @@ export default function NewWorkOrder() {
             onChange={handleInputChange}
             required
           />
-        </div>
-
-        <div>
-          <Label htmlFor="assignedToId">Assigned To</Label>
-          <Select
-            value={formData.assignedToId}
-            onValueChange={(value) => handleSelectChange(value, 'assignedToId')}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select assignee" />
-            </SelectTrigger>
-            <SelectContent>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="supervisorId">Supervisor</Label>
-          <Select
-            value={formData.supervisorId}
-            onValueChange={(value) => handleSelectChange(value, 'supervisorId')}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select supervisor" />
-            </SelectTrigger>
-            <SelectContent>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <div>

@@ -37,7 +37,6 @@ interface WorkOrderEditDialogProps {
     endDate: Date
     pickupLocationId: string
     deliveryLocationId: string
-    assignedToId: string
     supervisorId: string
     createdById: string
   } | null
@@ -68,7 +67,6 @@ export function WorkOrderEditDialog({
     endDate: string;
     pickupLocationId: string;
     deliveryLocationId: string;
-    assignedToId: string;
     supervisorId: string;
     createdById: string;
   } | null>(workOrder ? {
@@ -83,7 +81,6 @@ export function WorkOrderEditDialog({
     endDate: workOrder.endDate?.toISOString().slice(0, 16) || '',
     pickupLocationId: workOrder.pickupLocationId || '',
     deliveryLocationId: workOrder.deliveryLocationId || '',
-    assignedToId: workOrder.assignedToId || '',
     supervisorId: workOrder.supervisorId || '',
     createdById: workOrder.createdById || ''
   } : null);
@@ -91,18 +88,14 @@ export function WorkOrderEditDialog({
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const [techResponse, supervisorResponse] = await Promise.all([
-          fetch('/api/users?role=TECHNICIAN'),
+        const [supervisorResponse] = await Promise.all([
           fetch('/api/users?role=SUPERVISOR')
         ]);
         
-        if (!techResponse.ok) throw new Error('Failed to fetch technicians');
         if (!supervisorResponse.ok) throw new Error('Failed to fetch supervisors');
         
-        const techData = await techResponse.json();
         const supervisorData = await supervisorResponse.json();
         
-        setTechnicians(techData);
         setSupervisors(supervisorData);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -130,7 +123,6 @@ export function WorkOrderEditDialog({
           // Enviamos los IDs como están, el servidor los manejará con connect
           pickupLocationId: formData.pickupLocationId,
           deliveryLocationId: formData.deliveryLocationId,
-          assignedToId: formData.assignedToId,
           supervisorId: formData.supervisorId,
         }),
       });
@@ -309,28 +301,6 @@ export function WorkOrderEditDialog({
                 onChange={(e) => setFormData(prev => prev ? { ...prev, deliveryLocationId: e.target.value } : null)}
                 className="col-span-3"
               />
-            </div>
-
-            <div className="input-group">
-              <Label htmlFor="assignedToId">Assigned To</Label>
-              <Select
-                value={formData?.assignedToId || ''}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  assignedToId: value
-                } : null)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select technician" />
-                </SelectTrigger>
-                <SelectContent>
-                  {technicians.map((tech) => (
-                    <SelectItem key={tech.id} value={tech.id}>
-                      {tech.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="input-group">

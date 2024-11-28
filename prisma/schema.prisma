@@ -20,10 +20,8 @@ model User {
   documents        Document[]
   notes            Note[]
   schedules        Schedule[]
-  assignedOrders   WorkOrder[] @relation("AssignedTo")
   cancelledOrders  WorkOrder[] @relation("CancelledBy")
   createdOrders    WorkOrder[] @relation("CreatedBy")
-  supervisedOrders WorkOrder[] @relation("SupervisedBy")
 }
 
 model WorkOrder {
@@ -32,8 +30,8 @@ model WorkOrder {
   status             WorkOrderStatus @default(PENDING)
   fameNumber         String          @unique
   clientName         String
-  clientContactName  String
-  clientPhone        String
+  clientContactName  String?
+  clientPhone        String?
   startDate          DateTime
   startHour          String
   endHour           String?
@@ -43,50 +41,24 @@ model WorkOrder {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   cancelledAt        DateTime?
-  assignedToId       String
   createdById        String
   cancelledById      String?
-  supervisorId       String
+  createdBy          User            @relation("CreatedBy", fields: [createdById], references: [id])
+  cancelledBy        User?           @relation("CancelledBy", fields: [cancelledById], references: [id])
+  equipment          Equipment[]     @relation("EquipmentToWorkOrder")
   documents          Document[]
   notes              Note[]
   schedules          Schedule[]
-  assignedTo         User            @relation("AssignedTo", fields: [assignedToId], references: [id])
-  cancelledBy        User?           @relation("CancelledBy", fields: [cancelledById], references: [id])
-  createdBy          User            @relation("CreatedBy", fields: [createdById], references: [id])
-  supervisor         User            @relation("SupervisedBy", fields: [supervisorId], references: [id])
-  equipment          Equipment[]     @relation("EquipmentToWorkOrder")
 }
 
 model Equipment {
-  id              String          @id @default(uuid())
-  name            String
-  type            String
-  status          EquipmentStatus
-  licensePlate    String?
-  serialNumber    String?
-  description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  locationId      String?
-  documents       Document[]
-  currentLocation Location?       @relation(fields: [locationId], references: [id])
-  notes           Note[]
-  workOrders      WorkOrder[]     @relation("EquipmentToWorkOrder")
-}
-
-model Location {
-  id             String      @id @default(uuid())
-  name           String
-  address        String
-  city           String
-  state          String
-  zipCode        String
-  latitude       Float?
-  longitude      Float?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  equipment      Equipment[]
-  notes          Note[]      @relation("LocationNotes")
+  id          String       @id @default(uuid())
+  name        String
+  type        EquipmentType
+  status      EquipmentStatus @default(AVAILABLE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workOrders  WorkOrder[]  @relation("EquipmentToWorkOrder")
 }
 
 model Schedule {
@@ -108,10 +80,6 @@ model Note {
   updatedAt   DateTime   @updatedAt
   userId      String
   workOrderId String?
-  equipmentId String?
-  locationId  String?
-  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
-  location    Location?  @relation("LocationNotes", fields: [locationId], references: [id])
   user        User       @relation(fields: [userId], references: [id])
   workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
 }
@@ -119,21 +87,18 @@ model Note {
 model Document {
   id          String     @id @default(uuid())
   name        String
-  type        String
   url         String
+  type        String
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   userId      String
   workOrderId String?
-  equipmentId String?
-  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
   user        User       @relation(fields: [userId], references: [id])
   workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
 }
 
 enum UserRole {
   ADMIN
-  COORDINATOR
   SUPERVISOR
   TECHNICIAN
 }
@@ -153,9 +118,18 @@ enum WorkOrderStatus {
   CANCELLED
 }
 
+enum EquipmentType {
+  TRUCK
+  TRAILER
+  SIGN
+  LIGHT
+  BARRIER
+  OTHER
+}
+
 enum EquipmentStatus {
   AVAILABLE
   IN_USE
   MAINTENANCE
-  OUT_OF_SERVICE
+  RETIRED
 }

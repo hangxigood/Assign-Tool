@@ -16,7 +16,7 @@ interface WorkOrder {
   startDate: string
   endDate: string
   clientName: string
-  assignedTo: {
+  createdBy: {
     firstName: string
     lastName: string
   }
@@ -70,7 +70,7 @@ function WorkOrderItem({ workOrder, onSelect }: {
         type: workOrder.type,
         status: workOrder.status,
         clientName: workOrder.clientName,
-        assignedTo: `${workOrder.assignedTo.firstName} ${workOrder.assignedTo.lastName}`,
+        createdBy: `${workOrder.createdBy.firstName} ${workOrder.createdBy.lastName}`,
         supervisor: workOrder.supervisor ? `${workOrder.supervisor.firstName} ${workOrder.supervisor.lastName}` : ''
       }
     };
@@ -123,8 +123,8 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
         // Filter work orders if user is a technician
         const filteredOrders = session?.user?.role === "TECHNICIAN"
           ? data.filter((order: WorkOrder) => 
-              order.assignedTo?.firstName === session.user.firstName && 
-              order.assignedTo?.lastName === session.user.lastName)
+              order.createdBy?.firstName === session.user.firstName && 
+              order.createdBy?.lastName === session.user.lastName)
           : data
 
         // Sort by start date

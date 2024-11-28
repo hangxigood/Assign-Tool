@@ -8,32 +8,29 @@ import { authOptions } from '@/lib/auth';
  */
 export async function GET() {
   try {
+    console.log('Fetching work orders...');
     const workOrders = await prisma.workOrder.findMany({
       include: {
-        assignedTo: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
-        supervisor: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
         createdBy: {
           select: {
             firstName: true,
             lastName: true,
           },
         },
+        cancelledBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        equipment: true,
       },
       orderBy: {
         startDate: 'asc',
       },
     });
     
+    console.log('Work orders fetched:', workOrders);
     return NextResponse.json(workOrders);
   } catch (error) {
     console.error('Error fetching work orders:', error);
@@ -50,42 +47,50 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - You must be logged in to create a work order' },
-        { status: 401 }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     const data = await request.json();
+    console.log('Creating work order with data:', data);
     
-    // Crear el work order con los datos procesados
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const workOrder = await prisma.workOrder.create({
       data: {
         type: data.type,
+        status: data.status || 'PENDING',
         fameNumber: data.fameNumber,
         clientName: data.clientName,
         clientContactName: data.clientContactName,
         clientPhone: data.clientPhone,
         startDate: new Date(data.startDate),
         startHour: data.startHour,
-        endHour: data.endHour || null,
+        endHour: data.endHour,
         location: data.location,
-        noteText: data.noteText || null,
-        documentUrl: data.documentUrl || null,
-        assignedToId: data.assignedToId,
-        supervisorId: data.supervisorId,
-        createdById: session.user.id,
-        status: 'PENDING',
+        noteText: data.noteText,
+        createdById: user.id,
+      },
+      include: {
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
-    
+
+    console.log('Work order created:', workOrder);
     return NextResponse.json(workOrder);
   } catch (error) {
     console.error('Error creating work order:', error);
-    return NextResponse.json(
-      { error: 'Failed to create work order', details: error }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create work order' }, { status: 500 });
   }
 }

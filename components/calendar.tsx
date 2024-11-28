@@ -22,8 +22,12 @@ interface WorkOrderEvent {
     type: WorkOrderType
     status: WorkOrderStatus
     clientName: string
-    assignedTo: string
+    createdBy: string
     supervisor: string
+    fameNumber: string
+    startHour: string
+    endHour: string
+    location: string
   }
 }
 
@@ -88,8 +92,12 @@ export function Calendar({
               type: order.type,
               status: order.status,
               clientName: order.clientName,
-              assignedTo: `${order.assignedTo.firstName} ${order.assignedTo.lastName}`,
-              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : ''
+              createdBy: `${order.createdBy.firstName} ${order.createdBy.lastName}`,
+              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : '',
+              fameNumber: order.fameNumber,
+              startHour: order.startHour,
+              endHour: order.endHour || 'TBD',
+              location: order.location,
             }
           };
           console.log('Created event:', event);
@@ -205,8 +213,9 @@ export function Calendar({
           return (
             <div className="p-1">
               <div className="font-medium">{event.title}</div>
-              <div>Assigned: {event.extendedProps.assignedTo}</div>
-              <div>Supervisor: {event.extendedProps.supervisor}</div>
+              <div>Client: {event.extendedProps.clientName}</div>
+              <div>Created By: {event.extendedProps.createdBy}</div>
+              <div>Location: {event.extendedProps.location}</div>
             </div>
           )
         }}

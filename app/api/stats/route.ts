@@ -15,21 +15,17 @@ export async function GET() {
       }
     });
 
-    // Get total technicians and assigned technicians
+    // Get total technicians
     const totalTechnicians = await prisma.user.count({
       where: {
         role: 'TECHNICIAN',
       }
     });
     
-    const assignedTechnicians = await prisma.user.count({
+    // Get total active work orders
+    const activeWorkOrders = await prisma.workOrder.count({
       where: {
-        role: 'TECHNICIAN',
-        assignedOrders: {
-          some: {
-            status: { not: 'COMPLETED' }
-          }
-        }
+        status: { not: WorkOrderStatus.COMPLETED }
       }
     });
 
@@ -45,6 +41,18 @@ export async function GET() {
       }
     });
 
+    let todayHours = 0;
+    for (const order of todayWorkOrders) {
+      if (order.startHour && order.endHour) {
+        const [startHour, startMinute] = order.startHour.split(':').map(Number);
+        const [endHour, endMinute] = order.endHour.split(':').map(Number);
+        const hours = endHour - startHour + (endMinute - startMinute) / 60;
+        if (hours > 0) {
+          todayHours += hours;
+        }
+      }
+    }
+
     // Calculate hours worked this month
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthWorkOrders = await prisma.workOrder.findMany({
@@ -56,37 +64,28 @@ export async function GET() {
       }
     });
 
-    // Calculate total hours
-    const calculateHours = (orders: any[]) => {
-      return orders.reduce((total, order) => {
-        const startHourParts = order.startHour.split(':');
-        const endHourParts = order.endHour ? order.endHour.split(':') : null;
-        
-        if (!endHourParts) return total;
-        
-        const startMinutes = parseInt(startHourParts[0]) * 60 + parseInt(startHourParts[1]);
-        const endMinutes = parseInt(endHourParts[0]) * 60 + parseInt(endHourParts[1]);
-        
-        const hours = (endMinutes - startMinutes) / 60;
-        return total + (hours > 0 ? hours : 0);
-      }, 0);
-    };
-
-    const hoursToday = Math.round(calculateHours(todayWorkOrders));
-    const hoursThisMonth = Math.round(calculateHours(monthWorkOrders));
+    let monthHours = 0;
+    for (const order of monthWorkOrders) {
+      if (order.startHour && order.endHour) {
+        const [startHour, startMinute] = order.startHour.split(':').map(Number);
+        const [endHour, endMinute] = order.endHour.split(':').map(Number);
+        const hours = endHour - startHour + (endMinute - startMinute) / 60;
+        if (hours > 0) {
+          monthHours += hours;
+        }
+      }
+    }
 
     return NextResponse.json({
-      trucks: `${assignedTrucks}/${totalTrucks}`,
-      technicians: `${assignedTechnicians}/${totalTechnicians}`,
-      hoursToday,
-      hoursThisMonth
+      totalTrucks,
+      assignedTrucks,
+      totalTechnicians,
+      activeWorkOrders,
+      todayHours: Math.round(todayHours * 10) / 10,
+      monthHours: Math.round(monthHours * 10) / 10,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error fetching stats:', error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
     console.error('Error fetching stats:', error);
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }
