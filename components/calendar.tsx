@@ -20,6 +20,7 @@ interface WorkOrderEvent {
   type: WorkOrderType
   status: WorkOrderStatus
   clientName: string
+  fameNumber: string
   extendedProps: {
     type: WorkOrderType
     status: WorkOrderStatus
@@ -119,7 +120,7 @@ export function Calendar({
 
           const event = {
             id: order.id,
-            title: `${order.type} - ${order.fameNumber}`,
+            title: `${order.type} - ${order.fameNumber} - ${order.clientName}`,
             start: startDate,
             end: endDate,
             backgroundColor: getWorkOrderTypeColor(order.type),
@@ -128,17 +129,19 @@ export function Calendar({
             type: order.type,
             status: order.status,
             clientName: order.clientName,
+            fameNumber: order.fameNumber,
             extendedProps: {
               type: order.type,
+              status: order.status,
               fameNumber: order.fameNumber,
               clientName: order.clientName,
-              createdBy: `${order.createdBy.firstName} ${order.createdBy.lastName}`,
-              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : '',
-              startHour: order.startHour,
-              endHour: order.endHour || 'TBD',
-              location: order.location,
-              truckNumber: order.truckNumber,
-              technician: order.technician
+              createdBy: order.createdBy ? `${order.createdBy.firstName} ${order.createdBy.lastName}` : 'N/A',
+              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : 'N/A',
+              startHour: order.startHour || 'N/A',
+              endHour: order.endHour || 'N/A',
+              location: order.location || 'N/A',
+              truckNumber: order.truckNumber || 'N/A',
+              technician: order.technician || 'N/A'
             }
           };
           console.log('Created event:', event);
