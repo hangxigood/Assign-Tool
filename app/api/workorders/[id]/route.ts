@@ -5,7 +5,7 @@ export async function GET(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
+  const { id } = context.params;
 
   try {
     const workOrder = await prisma.workOrder.findUnique({
@@ -43,7 +43,7 @@ export async function PUT(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
+  const { id } = context.params;
   try {
     const data = await request.json();
     const workOrder = await prisma.workOrder.update({
@@ -78,7 +78,7 @@ export async function DELETE(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
+  const { id } = context.params;
   try {
     await prisma.workOrder.delete({
       where: { id },
