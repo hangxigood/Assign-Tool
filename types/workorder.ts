@@ -95,6 +95,10 @@ export interface WorkOrderEvent extends WorkOrderBase {
         status: WorkOrderStatus
         /** Name of the client */
         clientName: string
+        /** Client's email address */
+        clientEmail?: string
+        /** Client's phone number */
+        clientPhone?: string
         /** Formatted name of assigned technician */
         assignedTo: string
         /** Formatted name of supervisor */
@@ -162,6 +166,8 @@ export function toWorkOrderEvent(workOrder: WorkOrder): WorkOrderEvent {
             type: workOrder.type,
             status: workOrder.status,
             clientName: workOrder.clientName,
+            clientEmail: workOrder.clientEmail,
+            clientPhone: workOrder.clientPhone,
             assignedTo: formatAssigneeName(workOrder.assignedTo),
             supervisor: workOrder.supervisor ? formatAssigneeName(workOrder.supervisor) : ''
         }
