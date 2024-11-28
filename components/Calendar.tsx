@@ -29,20 +29,15 @@ export function Calendar({
   useEffect(() => {
     const fetchWorkOrders = async () => {
       try {
-        console.log('Fetching work orders...');
         const response = await fetch('/api/workorders');
         if (!response.ok) throw new Error('Failed to fetch work orders');
         const workOrders: WorkOrder[] = await response.json();
-        console.log('Fetched work orders:', workOrders);
         
         const calendarEvents = workOrders.map((order: WorkOrder) => {
-          console.log('Processing order:', order);
           const event = toWorkOrderEvent(order);
-          console.log('Created event:', event);
           return event;
         });
         
-        console.log('Setting calendar events:', calendarEvents);
         setEvents(calendarEvents);
       } catch (error) {
         console.error('Error fetching work orders:', error);

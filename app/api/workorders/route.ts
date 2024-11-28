@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET() {
   try {
-    console.log('Fetching work orders from database...');
     const workOrders = await prisma.workOrder.findMany({
       include: {
         assignedTo: {
@@ -27,7 +26,6 @@ export async function GET() {
       },
     });
     
-    console.log(`Found ${workOrders.length} work orders`);
     return NextResponse.json(workOrders);
   } catch (error) {
     console.error('Error fetching work orders:', error);
