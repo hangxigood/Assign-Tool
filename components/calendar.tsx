@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import dayGridPlugin from "@fullcalendar/daygrid"
 import { Button } from "@/components/ui/button"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -15,6 +16,7 @@ interface WorkOrderEvent {
   end: Date
   backgroundColor?: string
   borderColor?: string
+  textColor?: string
   type: WorkOrderType
   status: WorkOrderStatus
   clientName: string
@@ -28,6 +30,8 @@ interface WorkOrderEvent {
     startHour: string
     endHour: string
     location: string
+    truckNumber?: string
+    technician?: string
   }
 }
 
@@ -47,6 +51,40 @@ const getEventColor = (type: WorkOrderType) => {
       return { backgroundColor: "#6b7280", borderColor: "#4b5563" }
   }
 }
+
+const getWorkOrderTypeInitials = (type: string) => {
+  switch (type) {
+    case 'PICKUP':
+      return 'PU';
+    case 'ACTIVATION':
+      return 'AC';
+    case 'TEARDOWN':
+      return 'TD';
+    case 'DELIVERY':
+      return 'D';
+    case 'SETUP':
+      return 'SU';
+    default:
+      return type;
+  }
+};
+
+const getWorkOrderTypeColor = (type: string) => {
+  switch (type) {
+    case 'PICKUP':
+      return '#FFDAB9'; // Peach
+    case 'ACTIVATION':
+      return '#98FB98'; // Pale green
+    case 'TEARDOWN':
+      return '#DDA0DD'; // Plum
+    case 'DELIVERY':
+      return '#87CEEB'; // Sky blue
+    case 'SETUP':
+      return '#FFE4B5'; // Moccasin
+    default:
+      return '#E0E0E0'; // Light gray
+  }
+};
 
 export function Calendar({
   onEventSelect,
@@ -81,23 +119,26 @@ export function Calendar({
 
           const event = {
             id: order.id,
-            title: `${order.fameNumber} - ${order.clientName}`,
+            title: `${order.type} - ${order.fameNumber}`,
             start: startDate,
             end: endDate,
-            ...colors,
+            backgroundColor: getWorkOrderTypeColor(order.type),
+            borderColor: 'transparent',
+            textColor: '#000000',
             type: order.type,
             status: order.status,
             clientName: order.clientName,
             extendedProps: {
               type: order.type,
-              status: order.status,
+              fameNumber: order.fameNumber,
               clientName: order.clientName,
               createdBy: `${order.createdBy.firstName} ${order.createdBy.lastName}`,
               supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : '',
-              fameNumber: order.fameNumber,
               startHour: order.startHour,
               endHour: order.endHour || 'TBD',
               location: order.location,
+              truckNumber: order.truckNumber,
+              technician: order.technician
             }
           };
           console.log('Created event:', event);
@@ -172,34 +213,15 @@ export function Calendar({
     <div className="h-full">
       <FullCalendar
         height="100%"
-        plugins={[timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
         headerToolbar={{
-          left: 'prev,next',
+          left: 'prev,next today',
           center: 'title',
-          right: 'timeGridDay,timeGridWeek'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        views={{
-          timeGridWeek: {
-            titleFormat: { month: 'short', day: 'numeric' },
-            dayHeaderFormat: { weekday: 'short', day: 'numeric' },
-            slotDuration: '01:00:00',
-          },
-          timeGridDay: {
-            titleFormat: { month: 'short', day: 'numeric' },
-            slotDuration: '01:00:00',
-          }
-        }}
-        windowResize={function(view) {
-          if (window.innerWidth < 768) {
-            calendarApi.changeView('timeGridDay');
-          } else {
-            calendarApi.changeView('timeGridWeek');
-          }
-        }}
-        allDaySlot={false}
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
+        slotMinTime="06:00:00"
+        slotMaxTime="20:00:00"
         events={events}
         editable={true}
         eventDrop={handleEventDrop}
@@ -208,16 +230,26 @@ export function Calendar({
             setCalendarApi(el.getApi())
           }
         }}
-        eventContent={(arg) => {
-          const event = arg.event
+        eventContent={(eventInfo) => {
+          const event = eventInfo.event;
           return (
-            <div className="p-1">
-              <div className="font-medium">{event.title}</div>
-              <div>Client: {event.extendedProps.clientName}</div>
-              <div>Created By: {event.extendedProps.createdBy}</div>
-              <div>Location: {event.extendedProps.location}</div>
+            <div className="p-1 text-xs" style={{
+              backgroundColor: getWorkOrderTypeColor(event.extendedProps.type),
+              border: 'none',
+              height: '100%',
+              width: '100%'
+            }}>
+              <div>{event.extendedProps.startHour} - {event.extendedProps.endHour || 'TBD'}</div>
+              <div>
+                {getWorkOrderTypeInitials(event.extendedProps.type)}-
+                {event.extendedProps.fameNumber}-
+                {event.extendedProps.clientName}
+              </div>
+              <div>
+                {event.extendedProps.truckNumber || ''} {event.extendedProps.technician || ''}
+              </div>
             </div>
-          )
+          );
         }}
         eventClick={(info) => {
           onEventSelect(info.event as unknown as WorkOrderEvent)
