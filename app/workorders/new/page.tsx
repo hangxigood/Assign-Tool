@@ -94,7 +94,7 @@ export default function NewWorkOrder() {
         throw new Error(errorData.error || 'Failed to create work order');
       }
 
-      router.push('/workorders');
+      router.push('/');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert(error instanceof Error ? error.message : 'An error occurred');

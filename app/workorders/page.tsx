@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { WorkOrderStatus, WorkOrderType } from '@prisma/client';
 
@@ -62,6 +62,10 @@ export default function WorkOrdersPage() {
     router.push('/workorders/new');
   };
 
+  const handleViewCalendar = () => {
+    router.push('/');
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-CA', {
       year: 'numeric',
@@ -74,10 +78,16 @@ export default function WorkOrdersPage() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Work Orders</h1>
-        <Button onClick={handleCreateNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create New
-        </Button>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={handleViewCalendar}>
+            <Calendar className="mr-2 h-4 w-4" />
+            View Calendar
+          </Button>
+          <Button onClick={handleCreateNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create New
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-md border">
@@ -110,7 +120,7 @@ export default function WorkOrdersPage() {
                   <TableCell>{formatDate(order.startDate)}</TableCell>
                   <TableCell>{`${order.startHour} - ${order.endHour || 'TBD'}`}</TableCell>
                   <TableCell>{order.location}</TableCell>
-                  <TableCell>{`${order.createdBy?.firstName || 'N/A'} ${order.createdBy?.lastName || ''}`}</TableCell>
+                  <TableCell>{`${order.createdBy.firstName} ${order.createdBy.lastName}`}</TableCell>
                 </TableRow>
               );
             })}
