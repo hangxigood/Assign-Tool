@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 /**
  * Handles GET requests to retrieve work orders.
@@ -42,6 +44,15 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - You must be logged in to create a work order' },
+        { status: 401 }
+      );
+    }
+
     const data = await request.json();
     const workOrder = await prisma.workOrder.create({
       data: {

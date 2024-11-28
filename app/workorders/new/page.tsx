@@ -17,7 +17,14 @@ import {
 
 export default function NewWorkOrder() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      console.log('Session status:', status);
+      console.log('Session data:', session);
+      router.push('/api/auth/signin');
+    },
+  });
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [formData, setFormData] = useState({
@@ -34,6 +41,17 @@ export default function NewWorkOrder() {
   });
 
   useEffect(() => {
+    console.log('Session status in effect:', status);
+    console.log('Session data in effect:', session);
+    
+    if (status === 'loading') return;
+    
+    if (!session?.user) {
+      console.log('No session user found, redirecting...');
+      router.push('/api/auth/signin');
+      return;
+    }
+
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/users');
@@ -46,7 +64,7 @@ export default function NewWorkOrder() {
     };
 
     fetchUsers();
-  }, []);
+  }, [status, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
