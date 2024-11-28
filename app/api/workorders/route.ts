@@ -8,7 +8,6 @@ import { authOptions } from '@/lib/auth';
  */
 export async function GET() {
   try {
-    console.log('Fetching work orders from database...');
     const workOrders = await prisma.workOrder.findMany({
       include: {
         assignedTo: {
@@ -23,13 +22,18 @@ export async function GET() {
             lastName: true,
           },
         },
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
       orderBy: {
         startDate: 'asc',
       },
     });
     
-    console.log(`Found ${workOrders.length} work orders`);
     return NextResponse.json(workOrders);
   } catch (error) {
     console.error('Error fetching work orders:', error);
@@ -54,26 +58,34 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
+    
+    // Crear el work order con los datos procesados
     const workOrder = await prisma.workOrder.create({
       data: {
         type: data.type,
         fameNumber: data.fameNumber,
         clientName: data.clientName,
+        clientContactName: data.clientContactName,
         clientPhone: data.clientPhone,
-        clientEmail: data.clientEmail,
         startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
+        startHour: data.startHour,
+        endHour: data.endHour || null,
+        location: data.location,
+        noteText: data.noteText || null,
+        documentUrl: data.documentUrl || null,
         assignedToId: data.assignedToId,
-        createdById: data.createdById,
         supervisorId: data.supervisorId,
-        pickupLocationId: data.pickupLocationId,
-        deliveryLocationId: data.deliveryLocationId,
+        createdById: session.user.id,
+        status: 'PENDING',
       },
     });
     
     return NextResponse.json(workOrder);
   } catch (error) {
     console.error('Error creating work order:', error);
-    return NextResponse.json({ error: 'Failed to create work order' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create work order', details: error }, 
+      { status: 500 }
+    );
   }
 }

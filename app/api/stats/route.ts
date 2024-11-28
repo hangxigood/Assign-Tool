@@ -21,16 +21,7 @@ export async function GET() {
         role: 'TECHNICIAN',
       }
     });
-    // Debug: First check for any IN_PROGRESS work orders
-    const inProgressOrders = await prisma.workOrder.findMany({
-      where: {
-        status: 'IN_PROGRESS'
-      },
-      include: {
-        assignedTo: true
-      }
-    });
-    console.log('IN_PROGRESS work orders:', inProgressOrders);
+    
     const assignedTechnicians = await prisma.user.count({
       where: {
         role: 'TECHNICIAN',
@@ -48,13 +39,9 @@ export async function GET() {
     const todayWorkOrders = await prisma.workOrder.findMany({
       where: {
         status: WorkOrderStatus.COMPLETED,
-        endDate: {
+        startDate: {
           gte: today
         }
-      },
-      select: {
-        startDate: true,
-        endDate: true
       }
     });
 
@@ -63,25 +50,25 @@ export async function GET() {
     const monthWorkOrders = await prisma.workOrder.findMany({
       where: {
         status: WorkOrderStatus.COMPLETED,
-        endDate: {
+        startDate: {
           gte: firstDayOfMonth
         }
-      },
-      select: {
-        startDate: true,
-        endDate: true
       }
     });
 
     // Calculate total hours
-    const calculateHours = (orders: { startDate: Date, endDate: Date | null }[]) => {
-      return orders.reduce((total: number, order: { startDate: Date, endDate: Date | null }) => {
-        // Add a null check
-        if (order.endDate) {
-          const hours = (new Date(order.endDate).getTime() - new Date(order.startDate).getTime()) / (1000 * 60 * 60);
-          return total + hours;
-        }
-        return total;
+    const calculateHours = (orders: any[]) => {
+      return orders.reduce((total, order) => {
+        const startHourParts = order.startHour.split(':');
+        const endHourParts = order.endHour ? order.endHour.split(':') : null;
+        
+        if (!endHourParts) return total;
+        
+        const startMinutes = parseInt(startHourParts[0]) * 60 + parseInt(startHourParts[1]);
+        const endMinutes = parseInt(endHourParts[0]) * 60 + parseInt(endHourParts[1]);
+        
+        const hours = (endMinutes - startMinutes) / 60;
+        return total + (hours > 0 ? hours : 0);
       }, 0);
     };
 
@@ -95,7 +82,11 @@ export async function GET() {
       hoursThisMonth
     });
   } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error fetching stats:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     console.error('Error fetching stats:', error);
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }

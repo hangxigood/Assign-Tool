@@ -32,15 +32,17 @@ model WorkOrder {
   status             WorkOrderStatus @default(PENDING)
   fameNumber         String          @unique
   clientName         String
+  clientContactName  String
   clientPhone        String
-  clientEmail        String?
   startDate          DateTime
-  endDate            DateTime?
+  startHour          String
+  endHour           String?
+  location          String
+  noteText          String?
+  documentUrl       String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   cancelledAt        DateTime?
-  pickupLocationId   String?
-  deliveryLocationId String?
   assignedToId       String
   createdById        String
   cancelledById      String?
@@ -51,8 +53,6 @@ model WorkOrder {
   assignedTo         User            @relation("AssignedTo", fields: [assignedToId], references: [id])
   cancelledBy        User?           @relation("CancelledBy", fields: [cancelledById], references: [id])
   createdBy          User            @relation("CreatedBy", fields: [createdById], references: [id])
-  deliveryLocation   Location?       @relation("DeliveryLocation", fields: [deliveryLocationId], references: [id])
-  pickupLocation     Location?       @relation("PickupLocation", fields: [pickupLocationId], references: [id])
   supervisor         User            @relation("SupervisedBy", fields: [supervisorId], references: [id])
   equipment          Equipment[]     @relation("EquipmentToWorkOrder")
 }
@@ -87,14 +87,12 @@ model Location {
   updatedAt      DateTime    @updatedAt
   equipment      Equipment[]
   notes          Note[]      @relation("LocationNotes")
-  deliveryOrders WorkOrder[] @relation("DeliveryLocation")
-  pickupOrders   WorkOrder[] @relation("PickupLocation")
 }
 
 model Schedule {
   id          String    @id @default(uuid())
-  startTime   DateTime
-  endTime     DateTime
+  startTime   String
+  endTime     String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   userId      String
@@ -142,10 +140,10 @@ enum UserRole {
 
 enum WorkOrderType {
   PICKUP
-  SETUP
   DELIVERY
-  ACTIVATION
   TEARDOWN
+  SETUP
+  ACTIVATION
 }
 
 enum WorkOrderStatus {
