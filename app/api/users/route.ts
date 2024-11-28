@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 
-export async function GET(request: Request) {
+// This tells Next.js this is a dynamic route
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const roleParam = searchParams.get('role')?.toUpperCase();
+    const roleParam = request.nextUrl.searchParams.get('role')?.toUpperCase();
     
     let role: UserRole | undefined;
     if (roleParam === 'TECHNICIANS') {
