@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export async function POST(req: Request) {
+// Mark as dynamic route
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
   try {
-    const { email, password, firstName, lastName, role } = await req.json();
+    const body = await req.json();
+    const { email, password, firstName, lastName, role } = body;
 
     if (!email || !password || !firstName || !lastName || !role) {
       return NextResponse.json(
@@ -16,6 +20,9 @@ export async function POST(req: Request) {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
+    }).catch(error => {
+      console.error('Error checking existing user:', error);
+      throw new Error('Database error while checking user');
     });
 
     if (existingUser) {
@@ -37,6 +44,9 @@ export async function POST(req: Request) {
         lastName,
         role,
       },
+    }).catch(error => {
+      console.error('Error creating user:', error);
+      throw new Error('Database error while creating user');
     });
 
     return NextResponse.json(
@@ -52,9 +62,9 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: "Error creating user" },
+      { error: "An error occurred during registration" },
       { status: 500 }
     );
   }
