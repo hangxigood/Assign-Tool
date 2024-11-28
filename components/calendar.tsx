@@ -237,8 +237,12 @@ export function Calendar({
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
         timeZone="local"
-        slotMinTime="06:00:00"
-        slotMaxTime="20:00:00"
+        slotDuration="01:00:00"
+        slotLabelFormat={{
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }}
         events={events}
         editable={true}
         eventDrop={handleEventDrop}
