@@ -64,7 +64,8 @@ export function WorkOrderEditDialog({
     clientPhone: string;
     clientEmail: string;
     startDate: string;
-    endDate: string;
+    startHour: string;
+    endHour: string;
     pickupLocationId: string;
     deliveryLocationId: string;
     supervisorId: string;
@@ -77,8 +78,9 @@ export function WorkOrderEditDialog({
     clientName: workOrder.clientName || '',
     clientPhone: workOrder.clientPhone || '',
     clientEmail: workOrder.clientEmail || '',
-    startDate: workOrder.startDate?.toISOString().slice(0, 16) || new Date().toISOString().slice(0, 16),
-    endDate: workOrder.endDate?.toISOString().slice(0, 16) || '',
+    startDate: workOrder.startDate ? new Date(workOrder.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    startHour: workOrder.startHour || '09:00',
+    endHour: workOrder.endHour || '17:00',
     pickupLocationId: workOrder.pickupLocationId || '',
     deliveryLocationId: workOrder.deliveryLocationId || '',
     supervisorId: workOrder.supervisorId || '',
@@ -120,7 +122,8 @@ export function WorkOrderEditDialog({
         },
         body: JSON.stringify({
           ...formData,
-          // Enviamos los IDs como están, el servidor los manejará con connect
+          startDate: `${formData.startDate}T${formData.startHour}`,
+          endDate: `${formData.startDate}T${formData.endHour}`,
           pickupLocationId: formData.pickupLocationId,
           deliveryLocationId: formData.deliveryLocationId,
           supervisorId: formData.supervisorId,
@@ -264,21 +267,35 @@ export function WorkOrderEditDialog({
             <div className="input-group">
               <Label htmlFor="startDate">Start Date</Label>
               <Input
-                type="datetime-local"
+                type="date"
                 id="startDate"
                 value={formData?.startDate || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, startDate: e.target.value } : null)}
+                onChange={(e) => {
+                  console.log('Selected date:', e.target.value);
+                  setFormData(prev => prev ? { ...prev, startDate: e.target.value } : null);
+                }}
                 className="col-span-3"
               />
             </div>
 
             <div className="input-group">
-              <Label htmlFor="endDate">End Date</Label>
+              <Label htmlFor="startHour">Start Hour</Label>
               <Input
-                type="datetime-local"
-                id="endDate"
-                value={formData?.endDate || ''}
-                onChange={(e) => setFormData(prev => prev ? { ...prev, endDate: e.target.value } : null)}
+                type="time"
+                id="startHour"
+                value={formData?.startHour || ''}
+                onChange={(e) => setFormData(prev => prev ? { ...prev, startHour: e.target.value } : null)}
+                className="col-span-3"
+              />
+            </div>
+
+            <div className="input-group">
+              <Label htmlFor="endHour">End Hour</Label>
+              <Input
+                type="time"
+                id="endHour"
+                value={formData?.endHour || ''}
+                onChange={(e) => setFormData(prev => prev ? { ...prev, endHour: e.target.value } : null)}
                 className="col-span-3"
               />
             </div>

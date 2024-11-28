@@ -118,15 +118,15 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium text-gray-500">Title</h3>
               <p className="text-sm">{title}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Type</h3>
               <p className="text-sm">{displayValue(event.extendedProps.type)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">FAME</h3>
               <p className="text-sm">{displayValue(event.extendedProps.fameNumber)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Client</h3>
               <p className="text-sm">{displayValue(event.extendedProps.clientName)}</p>
             </div>
@@ -134,35 +134,35 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium text-gray-500">Date</h3>
               <p className="text-sm">{formattedDate}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Start Hour</h3>
               <p className="text-sm">{displayValue(event.extendedProps.startHour)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">End Hour</h3>
               <p className="text-sm">{displayValue(event.extendedProps.endHour)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Location</h3>
               <p className="text-sm">{displayValue(event.extendedProps.location)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Created By</h3>
               <p className="text-sm">{displayValue(event.extendedProps.createdBy)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Supervisor</h3>
               <p className="text-sm">{displayValue(event.extendedProps.supervisor)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Truck Number</h3>
               <p className="text-sm">{displayValue(event.extendedProps.truckNumber)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Technician</h3>
               <p className="text-sm">{displayValue(event.extendedProps.technician)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Status</h3>
               <p className="text-sm">{displayValue(event.extendedProps.status)}</p>
             </div>

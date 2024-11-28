@@ -110,32 +110,42 @@ export function Calendar({
         
         const calendarEvents = workOrders.map((order: any) => {
           console.log('Processing order:', order);
-          const colors = getEventColor(order.type);
           
-          // Parse start and end hours
+          // Get the date from startDate and adjust for timezone
+          const originalDate = new Date(order.startDate);
+          console.log('Original date from DB:', originalDate);
+          
+          // Adjust the date to local timezone without changing the date
+          const localDate = new Date(originalDate.getUTCFullYear(), 
+                                   originalDate.getUTCMonth(), 
+                                   originalDate.getUTCDate());
+          console.log('Local date:', localDate);
+          
+          // Parse hours
           const [startHour, startMinute] = (order.startHour || '00:00').split(':').map(Number);
           const [endHour, endMinute] = (order.endHour || '00:00').split(':').map(Number);
           
-          // Create date objects and set the correct hours
-          const startDate = new Date(order.startDate);
-          startDate.setHours(startHour, startMinute, 0);
+          // Create event dates
+          const eventStart = new Date(localDate);
+          eventStart.setHours(startHour, startMinute, 0, 0);
           
-          const endDate = new Date(order.startDate);  // Use same base date
-          endDate.setHours(endHour, endMinute, 0);
+          const eventEnd = new Date(localDate);
+          eventEnd.setHours(endHour, endMinute, 0, 0);
           
-          // If end time is before start time, assume it's next day
-          if (endDate < startDate) {
-            endDate.setDate(endDate.getDate() + 1);
+          // If end time is before start time, move to next day
+          if (eventEnd < eventStart) {
+            eventEnd.setDate(eventEnd.getDate() + 1);
           }
           
-          console.log('Start date:', startDate.toLocaleString());
-          console.log('End date:', endDate.toLocaleString());
+          console.log('Final event start:', eventStart);
+          console.log('Final event end:', eventEnd);
 
           const event = {
             id: order.id,
             title: `${order.type} - ${order.fameNumber} - ${order.clientName}`,
-            start: startDate,
-            end: endDate,
+            start: eventStart,
+            end: eventEnd,
+            allDay: false,
             backgroundColor: getWorkOrderTypeColor(order.type),
             borderColor: 'transparent',
             textColor: '#000000',
@@ -157,11 +167,11 @@ export function Calendar({
               technician: order.technician || 'N/A'
             }
           };
-          console.log('Created event:', event);
+          
+          console.log('Created calendar event:', event);
           return event;
         });
         
-        console.log('Setting calendar events:', calendarEvents);
         setEvents(calendarEvents);
       } catch (error) {
         console.error('Error fetching work orders:', error);
@@ -236,7 +246,7 @@ export function Calendar({
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        timeZone="local"
+        timeZone="UTC"
         slotDuration="01:00:00"
         slotLabelFormat={{
           hour: 'numeric',
