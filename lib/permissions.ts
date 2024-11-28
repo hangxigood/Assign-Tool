@@ -1,6 +1,9 @@
+/*
+These 2 are universal permissions
+'view-calendar'
+'view-work-orders'
+*/
 export type Permission = 
-  | 'view-calendar'
-  | 'view-work-orders'
   | 'create-work-orders'
   | 'edit-work-orders'
   | 'manage-users'
@@ -9,8 +12,6 @@ export type Permission =
 
 const rolePermissions: Record<string, Permission[]> = {
   ADMIN: [
-    'view-calendar',
-    'view-work-orders',
     'create-work-orders',
     'edit-work-orders',
     'manage-users',
@@ -18,16 +19,11 @@ const rolePermissions: Record<string, Permission[]> = {
     'assign-technicians'
   ],
   SUPERVISOR: [
-    'view-calendar',
-    'view-work-orders',
     'edit-work-orders',
     'manage-equipment',
     'assign-technicians'
   ],
-  TECHNICIAN: [
-    'view-calendar',
-    'view-work-orders'
-  ]
+  TECHNICIAN: []
 };
 
 export function hasPermission(userRole: string | undefined, permission: Permission): boolean {

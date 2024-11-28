@@ -344,7 +344,7 @@ export function WorkOrderEditDialog({
               {canEdit ? (
                 <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
               ) : (
-                <p className="text-sm text-muted">You don't have permission to edit work orders</p>
+                <p className="text-sm text-red-500">You don't have permission to edit work orders</p>
               )}
               {onDelete && (
                 <AlertDialog>

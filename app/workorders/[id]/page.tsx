@@ -1,5 +1,6 @@
 'use client';
 
+import { ProtectedRoute } from "@/components/protected-route";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorkOrderType, WorkOrderStatus } from '@prisma/client';
@@ -21,7 +22,7 @@ interface PageProps {
   };
 }
 
-export default function EditWorkOrder({ params }: PageProps) {
+function EditWorkOrder({ params }: PageProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
@@ -261,5 +262,13 @@ export default function EditWorkOrder({ params }: PageProps) {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function EditWorkOrderPage({ params }: PageProps) {
+  return (
+    <ProtectedRoute requiredPermission="edit-work-orders">
+      <EditWorkOrder params={params}/>
+    </ProtectedRoute>
   );
 }
