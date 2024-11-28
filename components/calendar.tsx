@@ -112,11 +112,24 @@ export function Calendar({
           console.log('Processing order:', order);
           const colors = getEventColor(order.type);
           
-          // Convert UTC dates to local timezone
+          // Parse start and end hours
+          const [startHour, startMinute] = (order.startHour || '00:00').split(':').map(Number);
+          const [endHour, endMinute] = (order.endHour || '00:00').split(':').map(Number);
+          
+          // Create date objects and set the correct hours
           const startDate = new Date(order.startDate);
-          const endDate = order.endDate 
-            ? new Date(order.endDate)
-            : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+          startDate.setHours(startHour, startMinute, 0);
+          
+          const endDate = new Date(order.startDate);  // Use same base date
+          endDate.setHours(endHour, endMinute, 0);
+          
+          // If end time is before start time, assume it's next day
+          if (endDate < startDate) {
+            endDate.setDate(endDate.getDate() + 1);
+          }
+          
+          console.log('Start date:', startDate.toLocaleString());
+          console.log('End date:', endDate.toLocaleString());
 
           const event = {
             id: order.id,
@@ -223,6 +236,7 @@ export function Calendar({
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
+        timeZone="local"
         slotMinTime="06:00:00"
         slotMaxTime="20:00:00"
         events={events}
