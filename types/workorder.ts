@@ -2,7 +2,8 @@
  * @fileoverview Core types and utilities for work order management in the Docket application.
  */
 
-import { WorkOrderType, WorkOrderStatus } from '@prisma/client'
+import { WorkOrderType, WorkOrderStatus, UserRole } from '@prisma/client'
+import { User } from './user'
 
 /**
  * Date format used for work order dates in forms
@@ -36,18 +37,6 @@ interface WorkOrderBase {
 }
 
 /**
- * Represents a person (employee) in the system
- */
-interface Person {
-    /** Unique identifier */
-    id: string
-    /** First name */
-    firstName: string
-    /** Last name */
-    lastName: string
-}
-
-/**
  * Main work order interface used throughout the application
  */
 export interface WorkOrder extends WorkOrderBase {
@@ -56,9 +45,9 @@ export interface WorkOrder extends WorkOrderBase {
     /** Scheduled end date and time */
     endDate: string | Date | null
     /** Information about the assigned technician */
-    assignedTo: Person
+    assignedTo: User
     /** Information about the supervising staff member */
-    supervisor?: Person
+    supervisor?: User
 }
 
 /**
@@ -205,10 +194,10 @@ export function toWorkOrderFormData(workOrder: WorkOrderEvent): WorkOrderFormDat
 }
 
 /**
- * Formats a person's full name
+ * Formats a user's full name
  */
-export function formatAssigneeName(person: Person): string {
-    return `${person.firstName} ${person.lastName}`
+export function formatAssigneeName(user: User): string {
+    return `${user.firstName} ${user.lastName}`
 }
 
 /**
