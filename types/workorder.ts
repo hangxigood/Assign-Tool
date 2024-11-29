@@ -75,35 +75,25 @@ export interface WorkOrderFormData extends WorkOrderBase {
     supervisorId?: string
 }
 
+
+// Calendar-specific properties
+interface CalendarEventProps {
+    /** Formatted name of assigned technician */
+    assignedTo: string
+    /** Formatted name of supervisor */
+    supervisor: string
+}
+
 /**
  * Work order structure optimized for calendar display
  */
 export interface WorkOrderEvent extends WorkOrderBase {
-    /** Event start time as Date object */
     start: Date
-    /** Event end time as Date object */
     end: Date
-    /** Optional background color for calendar display */
     backgroundColor?: string
-    /** Optional border color for calendar display */
     borderColor?: string
-    /** Additional properties for calendar functionality */
-    extendedProps: {
-        /** Type of work order */
-        type: WorkOrderType
-        /** Current status of the work order */
-        status: WorkOrderStatus
-        /** Name of the client */
-        clientName: string
-        /** Client's email address */
-        clientEmail?: string
-        /** Client's phone number */
-        clientPhone?: string
-        /** Formatted name of assigned technician */
-        assignedTo: string
-        /** Formatted name of supervisor */
-        supervisor: string
-    }
+    // Only include properties specific to calendar functionality
+    extendedProps: CalendarEventProps & Pick<WorkOrderBase, 'type' | 'status' | 'clientName' | 'clientEmail' | 'clientPhone'>
 }
 
 /**
