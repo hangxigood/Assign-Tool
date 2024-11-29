@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, LogOut, Truck, PenTool, Box, X } from 'lucide-react'
+import { Calendar, LogOut, Truck, PenTool, Box } from 'lucide-react'
 import { useSession, signOut } from "next-auth/react"
 import { WorkOrderType } from "@prisma/client"
 import { WorkOrder, WorkOrderEvent, toWorkOrderEvent, formatDateTime } from "@/types/workorder"
