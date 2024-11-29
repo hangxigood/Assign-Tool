@@ -41,3 +41,8 @@ export function isDisplayUser(user: any): user is DisplayUser {
 
 // Type mapping from Prisma
 export type User = Omit<PrismaUser, 'password' | 'createdAt' | 'updatedAt'>
+
+// NextAuth session user type
+export interface SessionUser extends Omit<UserBase, 'password'> {
+    accessToken?: string
+}
