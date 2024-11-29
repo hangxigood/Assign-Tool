@@ -140,17 +140,7 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
         w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex items-center justify-between p-4">
-          <h2 className="text-xl font-bold">Hello, User</h2>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="lg:hidden"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+
 
         <ScrollArea className="h-[calc(100vh-64px)]">
           <div className="p-4">
