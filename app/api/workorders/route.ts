@@ -42,6 +42,8 @@ function toDomainWorkOrder(dbWorkOrder: PrismaWorkOrder): WorkOrder {
     clientName: dbWorkOrder.clientName,
     clientEmail: dbWorkOrder.clientEmail || undefined,
     clientPhone: dbWorkOrder.clientPhone || undefined,
+    pickupLocationId: dbWorkOrder.pickupLocationId || undefined,
+    deliveryLocationId: dbWorkOrder.deliveryLocationId || undefined,
     startDate: dbWorkOrder.startDate,
     endDate: dbWorkOrder.endDate,
     assignedTo: {
