@@ -60,7 +60,8 @@ export function WorkOrderEditDialog({
   // Update form data when workOrder changes
   useEffect(() => {
     if (workOrder) {
-      setFormData(toWorkOrderFormData(workOrder));
+      const newFormData = toWorkOrderFormData(workOrder);
+      setFormData(newFormData);
     } else {
       setFormData(getDefaultFormData());
     }
@@ -108,6 +109,7 @@ export function WorkOrderEditDialog({
       
       if (!response.ok) throw new Error('Failed to update work order')
       
+      await response.json();
       onSave()
       onOpenChange(false)
     } catch (error) {

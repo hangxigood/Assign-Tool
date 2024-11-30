@@ -87,13 +87,16 @@ export interface WorkOrderFormData extends WorkOrderBase {
     supervisorId?: string
 }
 
-
 // Calendar-specific properties
 interface CalendarEventProps {
     /** Formatted name of assigned technician */
     assignedTo: string
     /** Formatted name of supervisor */
     supervisor: string
+    /** ID of assigned technician */
+    assignedToId: string
+    /** ID of supervisor */
+    supervisorId?: string
 }
 
 /**
@@ -171,7 +174,9 @@ export function toWorkOrderEvent(workOrder: WorkOrder): WorkOrderEvent {
             clientEmail: workOrder.clientEmail,
             clientPhone: workOrder.clientPhone,
             assignedTo: formatAssigneeName(workOrder.assignedTo),
-            supervisor: workOrder.supervisor ? formatAssigneeName(workOrder.supervisor) : ''
+            supervisor: workOrder.supervisor ? formatAssigneeName(workOrder.supervisor) : '',
+            assignedToId: workOrder.assignedTo.id,
+            supervisorId: workOrder.supervisor?.id
         }
     }
 }
@@ -211,8 +216,8 @@ export function toWorkOrderFormData(workOrder: WorkOrderEvent): WorkOrderFormDat
         clientPhone: workOrder.clientPhone || '',
         pickupLocationId: workOrder.pickupLocationId || '',
         deliveryLocationId: workOrder.deliveryLocationId || '',
-        assignedToId: '', // These need to be retrieved from the event's extendedProps or API
-        supervisorId: ''
+        assignedToId: workOrder.extendedProps.assignedToId,
+        supervisorId: workOrder.extendedProps.supervisorId || ''
     }
 }
 

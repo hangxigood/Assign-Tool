@@ -10,12 +10,14 @@ export async function GET() {
       include: {
         assignedTo: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
           },
         },
         supervisor: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
           },
