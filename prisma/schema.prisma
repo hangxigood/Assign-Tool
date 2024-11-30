@@ -7,19 +7,108 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id               String      @id @default(uuid())
+  email            String      @unique
+  password         String
+  firstName        String
+  lastName         String
+  role             UserRole
+  phone            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  documents        Document[]
+  notes            Note[]
+  schedules        Schedule[]
+  cancelledOrders  WorkOrder[] @relation("CancelledBy")
+  createdOrders    WorkOrder[] @relation("CreatedBy")
+}
+
+model WorkOrder {
+  id                 String          @id @default(uuid())
+  type               WorkOrderType
+  status             WorkOrderStatus @default(PENDING)
+  fameNumber         String          @unique
+  clientName         String
+  clientContactName  String?
+  clientPhone        String?
+  startDate          DateTime
+  startHour          String
+  endHour           String?
+  location          String
+  noteText          String?
+  documentUrl       String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  cancelledAt        DateTime?
+  createdById        String
+  cancelledById      String?
+  createdBy          User            @relation("CreatedBy", fields: [createdById], references: [id])
+  cancelledBy        User?           @relation("CancelledBy", fields: [cancelledById], references: [id])
+  equipment          Equipment[]     @relation("EquipmentToWorkOrder")
+  documents          Document[]
+  notes              Note[]
+  schedules          Schedule[]
+}
+
+model Equipment {
+  id          String       @id @default(uuid())
+  name        String
+  type        EquipmentType
+  status      EquipmentStatus @default(AVAILABLE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workOrders  WorkOrder[]  @relation("EquipmentToWorkOrder")
+}
+
+model Schedule {
+  id          String    @id @default(uuid())
+  startTime   String
+  endTime     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  workOrderId String
+  user        User      @relation(fields: [userId], references: [id])
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+}
+
+model Note {
+  id          String     @id @default(uuid())
+  content     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  workOrderId String?
+  user        User       @relation(fields: [userId], references: [id])
+  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
+}
+
+model Document {
+  id          String     @id @default(uuid())
+  name        String
+  url         String
+  type        String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  workOrderId String?
+  user        User       @relation(fields: [userId], references: [id])
+  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
+}
+
 enum UserRole {
   ADMIN
-  COORDINATOR
   SUPERVISOR
   TECHNICIAN
 }
 
 enum WorkOrderType {
   PICKUP
-  SETUP
   DELIVERY
-  ACTIVATION
   TEARDOWN
+  SETUP
+  ACTIVATION
 }
 
 enum WorkOrderStatus {
@@ -29,163 +118,18 @@ enum WorkOrderStatus {
   CANCELLED
 }
 
+enum EquipmentType {
+  TRUCK
+  TRAILER
+  SIGN
+  LIGHT
+  BARRIER
+  OTHER
+}
+
 enum EquipmentStatus {
   AVAILABLE
   IN_USE
   MAINTENANCE
-  OUT_OF_SERVICE
-}
-
-model User {
-  id            String      @id @default(uuid())
-  email         String      @unique
-  password      String
-  firstName     String
-  lastName      String
-  role          UserRole
-  phone         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  // Work order relationships
-  assignedOrders    WorkOrder[] @relation("AssignedTo")
-  createdOrders     WorkOrder[] @relation("CreatedBy")
-  cancelledOrders   WorkOrder[] @relation("CancelledBy")
-  supervisedOrders  WorkOrder[] @relation("SupervisedBy")
-
-  notes         Note[]
-  documents     Document[]
-  schedules     Schedule[]
-}
-
-model WorkOrder {
-  id              String          @id @default(uuid())
-  type            WorkOrderType
-  status          WorkOrderStatus @default(PENDING)
-  fameNumber      String          @unique
-  
-  // Client information
-  clientName      String
-  clientPhone     String
-  clientEmail     String?
-  
-  // Dates
-  startDate       DateTime
-  endDate         DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  cancelledAt     DateTime?
-  
-  // Location information
-  pickupLocation    Location?     @relation("PickupLocation", fields: [pickupLocationId], references: [id])
-  pickupLocationId  String?
-  deliveryLocation  Location?     @relation("DeliveryLocation", fields: [deliveryLocationId], references: [id])
-  deliveryLocationId String?
-  
-  // Related users
-  assignedTo       User          @relation("AssignedTo", fields: [assignedToId], references: [id])
-  assignedToId     String
-  
-  createdBy        User          @relation("CreatedBy", fields: [createdById], references: [id])
-  createdById      String
-  
-  cancelledBy      User?         @relation("CancelledBy", fields: [cancelledById], references: [id])
-  cancelledById    String?
-  
-  supervisor       User          @relation("SupervisedBy", fields: [supervisorId], references: [id])
-  supervisorId     String
-  
-  // Related entities
-  equipment        Equipment[]
-  notes            Note[]
-  documents        Document[]
-  schedules        Schedule[]
-}
-
-model Equipment {
-  id              String          @id @default(uuid())
-  name            String
-  type            String
-  status          EquipmentStatus
-  licensePlate    String?
-  serialNumber    String?
-  description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  
-  currentLocation Location?       @relation(fields: [locationId], references: [id])
-  locationId      String?
-  
-  workOrders      WorkOrder[]
-  notes           Note[]
-  documents       Document[]
-}
-
-model Location {
-  id              String      @id @default(uuid())
-  name            String
-  address         String
-  city            String
-  state           String
-  zipCode         String
-  latitude        Float?
-  longitude       Float?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  pickupOrders    WorkOrder[] @relation("PickupLocation")
-  deliveryOrders  WorkOrder[] @relation("DeliveryLocation")
-  equipment       Equipment[]
-  notes           Note[]      @relation("LocationNotes")
-}
-
-model Schedule {
-  id          String    @id @default(uuid())
-  startTime   DateTime
-  endTime     DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  user        User      @relation(fields: [userId], references: [id])
-  userId      String
-  
-  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
-  workOrderId String
-}
-
-model Note {
-  id          String    @id @default(uuid())
-  content     String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  user        User      @relation(fields: [userId], references: [id])
-  userId      String
-  
-  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
-  workOrderId String?
-  
-  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
-  equipmentId String?
-
-  location    Location?  @relation("LocationNotes", fields: [locationId], references: [id])
-  locationId  String?
-}
-
-model Document {
-  id          String    @id @default(uuid())
-  name        String
-  type        String
-  url         String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  user        User      @relation(fields: [userId], references: [id])
-  userId      String
-  
-  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
-  workOrderId String?
-  
-  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
-  equipmentId String?
+  RETIRED
 }

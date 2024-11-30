@@ -15,8 +15,10 @@ interface WorkOrder {
   status: WorkOrderStatus
   startDate: string
   endDate: string
+  startHour: string
+  endHour?: string | null
   clientName: string
-  assignedTo: {
+  createdBy: {
     firstName: string
     lastName: string
   }
@@ -58,11 +60,23 @@ function WorkOrderItem({ workOrder, onSelect }: {
   onSelect: (event: any) => void 
 }) {
   const handleClick = () => {
+    const startDateTime = new Date(workOrder.startDate);
+    const [startHour, startMinute] = workOrder.startHour.split(':');
+    startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+
+    let endDateTime = new Date(workOrder.startDate);
+    if (workOrder.endHour) {
+      const [endHour, endMinute] = workOrder.endHour.split(':');
+      endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+    } else {
+      endDateTime.setHours(startDateTime.getHours() + 2);
+    }
+
     const event = {
       id: workOrder.id,
       title: `${workOrder.fameNumber} - ${workOrder.clientName}`,
-      start: new Date(workOrder.startDate),
-      end: new Date(workOrder.endDate),
+      start: startDateTime,
+      end: endDateTime,
       type: workOrder.type,
       status: workOrder.status,
       clientName: workOrder.clientName,
@@ -70,7 +84,7 @@ function WorkOrderItem({ workOrder, onSelect }: {
         type: workOrder.type,
         status: workOrder.status,
         clientName: workOrder.clientName,
-        assignedTo: `${workOrder.assignedTo.firstName} ${workOrder.assignedTo.lastName}`,
+        createdBy: `${workOrder.createdBy.firstName} ${workOrder.createdBy.lastName}`,
         supervisor: workOrder.supervisor ? `${workOrder.supervisor.firstName} ${workOrder.supervisor.lastName}` : ''
       }
     };
@@ -119,14 +133,15 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
       try {
         const response = await fetch('/api/workorders')
         const data = await response.json()
-        
+        /*
         // Filter work orders if user is a technician
         const filteredOrders = session?.user?.role === "TECHNICIAN"
           ? data.filter((order: WorkOrder) => 
-              order.assignedTo?.firstName === session.user.firstName && 
-              order.assignedTo?.lastName === session.user.lastName)
+              order.createdBy?.firstName === session.user.firstName && 
+              order.createdBy?.lastName === session.user.lastName)
           : data
-
+        */
+        const filteredOrders = data;
         // Sort by start date
         const sortedOrders = filteredOrders.sort((a: WorkOrder, b: WorkOrder) => 
           new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
@@ -158,7 +173,6 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-xl font-bold">Hello, User</h2>
           <Button 
             variant="ghost" 
             size="icon"

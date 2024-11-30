@@ -22,8 +22,12 @@ interface WorkOrderEvent {
     type: WorkOrderType
     status: WorkOrderStatus
     clientName: string
-    assignedTo: string
+    createdBy: string
     supervisor: string
+    fameNumber: string
+    startHour: string
+    endHour: string
+    location: string
   }
 }
 
@@ -66,20 +70,28 @@ export function Calendar({
         console.log('Fetched work orders:', workOrders);
         
         const calendarEvents = workOrders.map((order: any) => {
-          console.log('Processing order:', order);
           const colors = getEventColor(order.type);
           
-          // Convert UTC dates to local timezone
-          const startDate = new Date(order.startDate);
-          const endDate = order.endDate 
-            ? new Date(order.endDate)
-            : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+          // Create start date from startDate and startHour
+          const startDateTime = new Date(order.startDate);
+          const [startHour, startMinute] = order.startHour.split(':');
+          startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
 
-          const event = {
+          // Create end date from startDate and endHour
+          const endDateTime = new Date(order.startDate);
+          if (order.endHour) {
+            const [endHour, endMinute] = order.endHour.split(':');
+            endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+          } else {
+            // If no endHour, set to 2 hours after start
+            endDateTime.setHours(startDateTime.getHours() + 2);
+          }
+
+          return {
             id: order.id,
             title: `${order.fameNumber} - ${order.clientName}`,
-            start: startDate,
-            end: endDate,
+            start: startDateTime,
+            end: endDateTime,
             ...colors,
             type: order.type,
             status: order.status,
@@ -88,12 +100,14 @@ export function Calendar({
               type: order.type,
               status: order.status,
               clientName: order.clientName,
-              assignedTo: `${order.assignedTo.firstName} ${order.assignedTo.lastName}`,
-              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : ''
+              createdBy: `${order.createdBy.firstName} ${order.createdBy.lastName}`,
+              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : '',
+              fameNumber: order.fameNumber,
+              startHour: order.startHour,
+              endHour: order.endHour || 'TBD',
+              location: order.location,
             }
           };
-          console.log('Created event:', event);
-          return event;
         });
         
         console.log('Setting calendar events:', calendarEvents);
@@ -205,8 +219,9 @@ export function Calendar({
           return (
             <div className="p-1">
               <div className="font-medium">{event.title}</div>
-              <div>Assigned: {event.extendedProps.assignedTo}</div>
-              <div>Supervisor: {event.extendedProps.supervisor}</div>
+              <div>Client: {event.extendedProps.clientName}</div>
+              <div>Created By: {event.extendedProps.createdBy}</div>
+              <div>Location: {event.extendedProps.location}</div>
             </div>
           )
         }}

@@ -1,24 +1,31 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
+  const { id } = context.params;
 
   try {
     const workOrder = await prisma.workOrder.findUnique({
       where: { id },
       include: {
-        assignedTo: {
+        createdBy: {
           select: {
             firstName: true,
             lastName: true,
           },
         },
-        pickupLocation: true,
-        deliveryLocation: true,
+        cancelledBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        equipment: true,
       },
     });
 
@@ -43,9 +50,15 @@ export async function PUT(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const { id } = context.params;
     const data = await request.json();
+
     const workOrder = await prisma.workOrder.update({
       where: { id },
       data: {
@@ -53,17 +66,24 @@ export async function PUT(
         status: data.status,
         fameNumber: data.fameNumber,
         clientName: data.clientName,
+        clientContactName: data.clientContactName,
         clientPhone: data.clientPhone,
-        clientEmail: data.clientEmail,
         startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        assignedToId: data.assignedToId,
-        supervisorId: data.supervisorId,
-        pickupLocationId: data.pickupLocationId,
-        deliveryLocationId: data.deliveryLocationId,
+        startHour: new Date(data.startDate).toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        endHour: data.endHour ? new Date(data.endHour).toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : null,
+        location: data.location,
+        noteText: data.noteText,
       },
     });
-    
+
     return NextResponse.json(workOrder);
   } catch (error) {
     console.error('Error updating work order:', error);
@@ -78,12 +98,17 @@ export async function DELETE(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params;
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const { id } = context.params;
     await prisma.workOrder.delete({
       where: { id },
     });
-    
+
     return NextResponse.json({ message: 'Work order deleted successfully' });
   } catch (error) {
     console.error('Error deleting work order:', error);

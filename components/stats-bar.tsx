@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react"
 
 interface Stats {
-  trucks: string
-  technicians: string
-  hoursToday: number
-  hoursThisMonth: number
+  totalTrucks: number
+  assignedTrucks: number
+  totalTechnicians: number
+  activeWorkOrders: number
+  todayHours: number
+  monthHours: number
 }
 
 export function StatsBar() {
@@ -30,10 +32,26 @@ export function StatsBar() {
   }, [])
 
   const statsConfig = [
-    { id: 'trucks', title: 'ASSIGNED TRUCKS', value: stats?.trucks ?? '0/0' },
-    { id: 'technicians', title: 'ASSIGNED TECHNICIANS', value: stats?.technicians ?? '0/0' },
-    { id: 'today', title: 'HOURS WORKED TODAY', value: stats?.hoursToday?.toString() ?? '0' },
-    { id: 'month', title: 'HOURS WORKED THIS MONTH', value: stats?.hoursThisMonth?.toString() ?? '0' },
+    { 
+      id: 'trucks', 
+      title: 'ASSIGNED TRUCKS', 
+      value: stats ? `${stats.assignedTrucks}/${stats.totalTrucks}` : '0/0' 
+    },
+    { 
+      id: 'technicians', 
+      title: 'ACTIVE WORK ORDERS', 
+      value: stats?.activeWorkOrders?.toString() ?? '0' 
+    },
+    { 
+      id: 'today', 
+      title: 'HOURS WORKED TODAY', 
+      value: stats?.todayHours?.toString() ?? '0' 
+    },
+    { 
+      id: 'month', 
+      title: 'HOURS WORKED THIS MONTH', 
+      value: stats?.monthHours?.toString() ?? '0' 
+    },
   ]
 
   return (

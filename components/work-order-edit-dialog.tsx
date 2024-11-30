@@ -18,6 +18,8 @@ import {
 import { useState, useEffect } from "react"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useSession } from "next-auth/react";
+import { hasPermission } from "@/lib/permissions";
 
 interface User {
   id: string;
@@ -37,7 +39,6 @@ interface WorkOrderEditDialogProps {
     endDate: Date
     pickupLocationId: string
     deliveryLocationId: string
-    assignedToId: string
     supervisorId: string
     createdById: string
   } | null
@@ -54,6 +55,7 @@ export function WorkOrderEditDialog({
   onSave,
   onDelete
 }: WorkOrderEditDialogProps) {
+  const { data: session } = useSession();
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
   const [formData, setFormData] = useState<{
@@ -68,7 +70,6 @@ export function WorkOrderEditDialog({
     endDate: string;
     pickupLocationId: string;
     deliveryLocationId: string;
-    assignedToId: string;
     supervisorId: string;
     createdById: string;
   } | null>(workOrder ? {
@@ -83,7 +84,6 @@ export function WorkOrderEditDialog({
     endDate: workOrder.endDate?.toISOString().slice(0, 16) || '',
     pickupLocationId: workOrder.pickupLocationId || '',
     deliveryLocationId: workOrder.deliveryLocationId || '',
-    assignedToId: workOrder.assignedToId || '',
     supervisorId: workOrder.supervisorId || '',
     createdById: workOrder.createdById || ''
   } : null);
@@ -91,18 +91,14 @@ export function WorkOrderEditDialog({
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const [techResponse, supervisorResponse] = await Promise.all([
-          fetch('/api/users?role=TECHNICIAN'),
+        const [supervisorResponse] = await Promise.all([
           fetch('/api/users?role=SUPERVISOR')
         ]);
         
-        if (!techResponse.ok) throw new Error('Failed to fetch technicians');
         if (!supervisorResponse.ok) throw new Error('Failed to fetch supervisors');
         
-        const techData = await techResponse.json();
         const supervisorData = await supervisorResponse.json();
         
-        setTechnicians(techData);
         setSupervisors(supervisorData);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -114,22 +110,46 @@ export function WorkOrderEditDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData || !workOrder?.id) {
+      throw new Error('No work order data to update');
+    }
+
     try {
-      const response = await fetch(`/api/workorders/${workOrder?.id}`, {
+      const response = await fetch(`/api/workorders/${workOrder.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
-      })
+        body: JSON.stringify({
+          ...formData,
+          // Enviamos los IDs como están, el servidor los manejará con connect
+          pickupLocationId: formData.pickupLocationId,
+          deliveryLocationId: formData.deliveryLocationId,
+          supervisorId: formData.supervisorId,
+        }),
+      });
       
-      if (!response.ok) throw new Error('Failed to update work order')
+      const responseText = await response.text();
+      let data;
       
-      const updatedWorkOrder = await response.json()
-      onSave(updatedWorkOrder)
-      onOpenChange(false)
-    } catch (error) {
-      console.error('Error updating work order:', error)
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response:', responseText);
+        throw new Error('Invalid response from server');
+      }
+      
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to update work order');
+      }
+      
+      // La respuesta ahora incluye los objetos completos de las relaciones
+      onSave(data.data);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Error updating work order:', error);
+      throw error instanceof Error ? error : new Error('Failed to update work order');
     }
   }
 
@@ -149,6 +169,9 @@ export function WorkOrderEditDialog({
       console.error('Error deleting work order:', error);
     }
   };
+
+  const canEdit = hasPermission(session?.user?.role, 'edit-work-orders');
+  const canAssignTechnicians = hasPermission(session?.user?.role, 'assign-technicians');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -287,28 +310,6 @@ export function WorkOrderEditDialog({
             </div>
 
             <div className="input-group">
-              <Label htmlFor="assignedToId">Assigned To</Label>
-              <Select
-                value={formData?.assignedToId || ''}
-                onValueChange={(value) => setFormData(prev => prev ? { 
-                  ...prev, 
-                  assignedToId: value
-                } : null)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select technician" />
-                </SelectTrigger>
-                <SelectContent>
-                  {technicians.map((tech) => (
-                    <SelectItem key={tech.id} value={tech.id}>
-                      {tech.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="input-group">
               <Label htmlFor="supervisorId">Supervisor</Label>
               <Select
                 value={formData?.supervisorId || ''}
@@ -329,11 +330,22 @@ export function WorkOrderEditDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {canAssignTechnicians && (
+              <div className="input-group">
+                <Label htmlFor="technicians">Assign Technicians</Label>
+                {/* Technician assignment fields */}
+              </div>
+            )}
           </div>
           
           <DialogFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
             <div className="button-group">
-              <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
+              {canEdit ? (
+                <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
+              ) : (
+                <p className="text-sm text-red-500">You don't have permission to edit work orders</p>
+              )}
               {onDelete && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

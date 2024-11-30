@@ -15,30 +15,17 @@ export async function GET() {
       }
     });
 
-    // Get total technicians and assigned technicians
+    // Get total technicians
     const totalTechnicians = await prisma.user.count({
       where: {
         role: 'TECHNICIAN',
       }
     });
-    // Debug: First check for any IN_PROGRESS work orders
-    const inProgressOrders = await prisma.workOrder.findMany({
+    
+    // Get total active work orders
+    const activeWorkOrders = await prisma.workOrder.count({
       where: {
-        status: 'IN_PROGRESS'
-      },
-      include: {
-        assignedTo: true
-      }
-    });
-    console.log('IN_PROGRESS work orders:', inProgressOrders);
-    const assignedTechnicians = await prisma.user.count({
-      where: {
-        role: 'TECHNICIAN',
-        assignedOrders: {
-          some: {
-            status: { not: 'COMPLETED' }
-          }
-        }
+        status: { not: WorkOrderStatus.COMPLETED }
       }
     });
 
@@ -48,51 +35,54 @@ export async function GET() {
     const todayWorkOrders = await prisma.workOrder.findMany({
       where: {
         status: WorkOrderStatus.COMPLETED,
-        endDate: {
+        startDate: {
           gte: today
         }
-      },
-      select: {
-        startDate: true,
-        endDate: true
       }
     });
+
+    let todayHours = 0;
+    for (const order of todayWorkOrders) {
+      if (order.startHour && order.endHour) {
+        const [startHour, startMinute] = order.startHour.split(':').map(Number);
+        const [endHour, endMinute] = order.endHour.split(':').map(Number);
+        const hours = endHour - startHour + (endMinute - startMinute) / 60;
+        if (hours > 0) {
+          todayHours += hours;
+        }
+      }
+    }
 
     // Calculate hours worked this month
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthWorkOrders = await prisma.workOrder.findMany({
       where: {
         status: WorkOrderStatus.COMPLETED,
-        endDate: {
+        startDate: {
           gte: firstDayOfMonth
         }
-      },
-      select: {
-        startDate: true,
-        endDate: true
       }
     });
 
-    // Calculate total hours
-    const calculateHours = (orders: { startDate: Date, endDate: Date | null }[]) => {
-      return orders.reduce((total: number, order: { startDate: Date, endDate: Date | null }) => {
-        // Add a null check
-        if (order.endDate) {
-          const hours = (new Date(order.endDate).getTime() - new Date(order.startDate).getTime()) / (1000 * 60 * 60);
-          return total + hours;
+    let monthHours = 0;
+    for (const order of monthWorkOrders) {
+      if (order.startHour && order.endHour) {
+        const [startHour, startMinute] = order.startHour.split(':').map(Number);
+        const [endHour, endMinute] = order.endHour.split(':').map(Number);
+        const hours = endHour - startHour + (endMinute - startMinute) / 60;
+        if (hours > 0) {
+          monthHours += hours;
         }
-        return total;
-      }, 0);
-    };
-
-    const hoursToday = Math.round(calculateHours(todayWorkOrders));
-    const hoursThisMonth = Math.round(calculateHours(monthWorkOrders));
+      }
+    }
 
     return NextResponse.json({
-      trucks: `${assignedTrucks}/${totalTrucks}`,
-      technicians: `${assignedTechnicians}/${totalTechnicians}`,
-      hoursToday,
-      hoursThisMonth
+      totalTrucks,
+      assignedTrucks,
+      totalTechnicians,
+      activeWorkOrders,
+      todayHours: Math.round(todayHours * 10) / 10,
+      monthHours: Math.round(monthHours * 10) / 10,
     });
   } catch (error) {
     console.error('Error fetching stats:', error);

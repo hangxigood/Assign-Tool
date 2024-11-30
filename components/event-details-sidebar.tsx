@@ -17,7 +17,6 @@ export interface EventDetailsProps {
     type: WorkOrderType
     status: WorkOrderStatus
     clientName: string
-    assignedTo: string
     supervisor: string
     supervisorId: string
     fameNumber: string
@@ -27,13 +26,11 @@ export interface EventDetailsProps {
     endDate: Date
     pickupLocationId: string
     deliveryLocationId: string
-    assignedToId: string
     createdById: string
     extendedProps: {
       type: WorkOrderType
       status: WorkOrderStatus
       clientName: string
-      assignedTo: string
       supervisor: string
       supervisorId: string
       fameNumber: string
@@ -43,7 +40,6 @@ export interface EventDetailsProps {
       endDate: Date
       pickupLocationId: string
       deliveryLocationId: string
-      assignedToId: string
       createdById: string
     }
   } | null
@@ -109,7 +105,10 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             </div>
             <div>
               <h3 className="font-medium">Time</h3>
-              <p>{event.start.toLocaleString()} - {event.end.toLocaleString()}</p>
+              <p>
+                {event.start?.toLocaleString()} - 
+                {event.end ? event.end.toLocaleString() : 'Not specified'}
+              </p>
             </div>
             <div>
               <h3 className="font-medium">Type</h3>
@@ -119,13 +118,15 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium">Status</h3>
               <p>{event.status}</p>
             </div>
-            <div>
-              <h3 className="font-medium">Client</h3>
-              <p>{event.clientName}</p>
-            </div>
-            <div>
-              <h3 className="font-medium">Assigned To</h3>
-              <p>{event.assignedTo}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-semibold">Created By</h3>
+                <p>{event.createdById}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Client</h3>
+                <p>{event.clientName}</p>
+              </div>
             </div>
             <div>
               <h3 className="font-medium">Supervisor</h3>

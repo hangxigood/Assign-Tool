@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { WorkOrderStatus, WorkOrderType } from '@prisma/client';
 
@@ -20,10 +20,22 @@ type WorkOrder = {
   status: WorkOrderStatus;
   fameNumber: string;
   clientName: string;
-  clientPhone: string;
-  startDate: Date;
-  endDate: Date | null;
-  assignedTo: { firstName: string; lastName: string };
+  clientContactName?: string | null;
+  clientPhone?: string | null;
+  startDate: string;
+  startHour: string;
+  endHour?: string | null;
+  location: string;
+  noteText?: string | null;
+  createdBy: {
+    firstName: string;
+    lastName: string;
+  };
+  equipment: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
 };
 
 export default function WorkOrdersPage() {
@@ -39,6 +51,7 @@ export default function WorkOrdersPage() {
       const response = await fetch('/api/workorders');
       if (!response.ok) throw new Error('Failed to fetch work orders');
       const data = await response.json();
+      console.log('Work orders data:', data);
       setWorkOrders(data);
     } catch (error) {
       console.error('Error fetching work orders:', error);
@@ -49,88 +62,70 @@ export default function WorkOrdersPage() {
     router.push('/workorders/new');
   };
 
-  const handleEdit = (id: string) => {
-    router.push(`/workorders/${id}`);
+  const handleViewCalendar = () => {
+    router.push('/');
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this work order?')) return;
-    
-    try {
-      const response = await fetch(`/api/workorders/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete work order');
-      fetchWorkOrders();
-    } catch (error) {
-      console.error('Error deleting work order:', error);
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   return (
-    <div className="container section-padding">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="heading-responsive">Work Orders</h1>
-        <Button 
-          onClick={handleCreateNew}
-          className="w-full sm:w-auto"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create New
-        </Button>
+    <div className="container mx-auto py-10">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">Work Orders</h1>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={handleViewCalendar}>
+            <Calendar className="mr-2 h-4 w-4" />
+            View Calendar
+          </Button>
+          <Button onClick={handleCreateNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create New
+          </Button>
+        </div>
       </div>
 
-      <div className="content-spacing">
-        <div className="table-container">
-          <Table className="responsive-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="whitespace-nowrap">Fame Number</TableHead>
-                <TableHead className="hidden sm:table-cell">Type</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead className="hidden lg:table-cell">Start Date</TableHead>
-                <TableHead className="hidden md:table-cell">Assigned To</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="whitespace-nowrap">{order.fameNumber}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{order.type}</TableCell>
-                  <TableCell className="hidden md:table-cell">{order.status}</TableCell>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fame Number</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Created By</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {workOrders.map((order) => {
+              console.log('Order data:', order);
+              return (
+                <TableRow 
+                  key={order.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => router.push(`/workorders/${order.id}`)}
+                >
+                  <TableCell>{order.fameNumber}</TableCell>
+                  <TableCell>{order.type}</TableCell>
+                  <TableCell>{order.status}</TableCell>
                   <TableCell>{order.clientName}</TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {new Date(order.startDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {`${order.assignedTo.firstName} ${order.assignedTo.lastName}`}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(order.id)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(order.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableCell>{formatDate(order.startDate)}</TableCell>
+                  <TableCell>{`${order.startHour} - ${order.endHour || 'TBD'}`}</TableCell>
+                  <TableCell>{order.location}</TableCell>
+                  <TableCell>{`${order.createdBy.firstName} ${order.createdBy.lastName}`}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
