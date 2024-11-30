@@ -25,7 +25,7 @@
  * - Calendar-specific formatting and styling
  */
 
-import { WorkOrderType, WorkOrderStatus, UserRole } from '@prisma/client'
+import { WorkOrderType, WorkOrderStatus } from '@prisma/client'
 import { User } from './user'
 
 /**
