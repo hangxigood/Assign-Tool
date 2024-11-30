@@ -73,8 +73,7 @@ function NewWorkOrder() {
         clientName: formData.clientName,
         clientContactName: formData.clientContactName || null,
         clientPhone: formData.clientPhone || null,
-        startDate: startDate.toISOString(),
-        startHour: formData.startHour,
+        startDate: new Date(formData.startDate + 'T' + formData.startHour).toISOString(), // Combine date and time into a single ISO string to avoid timezone issues
         endHour: formData.endHour || null,
         location: formData.location,
         noteText: formData.noteText || null,

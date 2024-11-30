@@ -75,8 +75,11 @@ export async function POST(request: Request) {
         clientName: data.clientName,
         clientContactName: data.clientContactName,
         clientPhone: data.clientPhone,
-        startDate: new Date(data.startDate),
-        startHour: data.startHour,
+        startDate: new Date(data.startDate), // Parse the ISO timestamp string into a Date object
+        startHour: new Date(data.startDate).toLocaleTimeString('en-US', {
+          hour12: false, //use 24 hour format
+          hour: '2-digit', minute: '2-digit' //Always use 2 digits
+        }),
         endHour: data.endHour,
         location: data.location,
         noteText: data.noteText,
