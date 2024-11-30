@@ -1,32 +1,79 @@
-// types/user.ts
-import { User as PrismaUser, UserRole } from '@prisma/client'
+/**
+ * @fileoverview User type definitions for the Docket application.
+ * 
+ * This file defines the type hierarchy for user-related data throughout the application:
+ * 
+ * Type Hierarchy:
+ * PrismaUser (Database Schema)
+ *        ↓
+ * User (Application Model) 
+ *        ↓
+ * UserBase (Auth + Custom Fields)
+ *        ↓
+ * DisplayUser, AuthUser, UserFormData (Specialized Types)
+ * 
+ * The hierarchy is designed to:
+ * 1. Integrate seamlessly with Prisma's database schema
+ * 2. Support Next-auth authentication
+ * 3. Provide specialized types for different contexts (UI, forms, auth)
+ */
 
-// Base user properties
-interface UserBase {
-    id: string
-    email: string
+import { User as PrismaUser, UserRole } from '@prisma/client'
+import { DefaultUser } from 'next-auth'
+
+/**
+ * Application's base user type
+ * Extends Next-auth's DefaultUser to ensure compatibility with auth system
+ * while adding our custom fields
+ */
+interface UserBase extends DefaultUser {
     firstName: string
     lastName: string
     role: UserRole
     phone?: string
 }
 
-// For authentication contexts
+/**
+ * Main User type for the application
+ * Maps from Prisma schema, excluding sensitive and metadata fields
+ * This is the primary type used throughout the application
+ */
+export type User = Omit<PrismaUser, 'password' | 'createdAt' | 'updatedAt'>
+
+/**
+ * User type for database operations
+ * Alias for User type to make database operations more explicit
+ */
+export type DatabaseUser = User
+
+/**
+ * User type for authentication contexts
+ * Includes password for login/registration
+ */
 export interface AuthUser extends UserBase {
     password: string
 }
 
-// For display contexts (no sensitive data)
+/**
+ * User type for display/UI contexts
+ * Includes computed properties, excludes sensitive data
+ */
 export interface DisplayUser extends UserBase {
-    fullName: string  // Computed property
+    fullName: string
 }
 
-// For form handling
-export interface UserFormData extends Omit<UserBase, 'id'> {
-    password?: string  // Optional for updates
+/**
+ * User type for form handling
+ * Makes auth-related fields optional for updates
+ */
+export interface UserFormData extends Omit<UserBase, 'id' | 'email' | 'image' | 'name'> {
+    email?: string
+    password?: string
 }
 
-// Type guard
+/**
+ * Type guard to validate DisplayUser objects
+ */
 export function isDisplayUser(user: any): user is DisplayUser {
     return (
         typeof user === 'object' &&
@@ -37,12 +84,4 @@ export function isDisplayUser(user: any): user is DisplayUser {
         typeof user.lastName === 'string' &&
         typeof user.role === 'string'
     )
-}
-
-// Type mapping from Prisma
-export type User = Omit<PrismaUser, 'password' | 'createdAt' | 'updatedAt'>
-
-// NextAuth session user type
-export interface SessionUser extends Omit<UserBase, 'password'> {
-    accessToken?: string
 }
