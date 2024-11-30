@@ -71,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     session({ session, token }) {
-      session.user.id = token.id;
+      session.user.id = token.sub;
       session.user.role = token.role;
       session.user.firstName = token.firstName;
       session.user.lastName = token.lastName;
