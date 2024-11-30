@@ -69,8 +69,16 @@ export async function PUT(
         clientContactName: data.clientContactName,
         clientPhone: data.clientPhone,
         startDate: new Date(data.startDate),
-        startHour: data.startHour,
-        endHour: data.endHour,
+        startHour: new Date(data.startDate).toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        endHour: data.endHour ? new Date(data.endHour).toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : null,
         location: data.location,
         noteText: data.noteText,
       },

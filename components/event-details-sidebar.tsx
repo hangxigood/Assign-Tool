@@ -105,7 +105,10 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             </div>
             <div>
               <h3 className="font-medium">Time</h3>
-              <p>{event.start.toLocaleString()} - {event.end.toLocaleString()}</p>
+              <p>
+                {event.start?.toLocaleString()} - 
+                {event.end ? event.end.toLocaleString() : 'Not specified'}
+              </p>
             </div>
             <div>
               <h3 className="font-medium">Type</h3>
