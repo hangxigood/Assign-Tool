@@ -31,20 +31,23 @@ export function Calendar({
       try {
         const response = await fetch('/api/workorders');
         if (!response.ok) throw new Error('Failed to fetch work orders');
-        const data = await response.json();
+        const workOrders = await response.json();
         
-        // Validate each work order
-        const validWorkOrders = data.filter((order: any) => isValidWorkOrder(order));
-        if (validWorkOrders.length !== data.length) {
-          console.warn('Some work orders failed validation');
+        // Light validation in production, full validation in development
+        if (process.env.NODE_ENV === 'development') {
+          const validWorkOrders = workOrders.filter((order: WorkOrder) => isValidWorkOrder(order));
+          if (validWorkOrders.length !== workOrders.length) {
+            console.warn('Some work orders failed validation');
+          }
+          setEvents(validWorkOrders.map(toWorkOrderEvent));
+        } else {
+          // In production, trust the API types but catch any runtime errors
+          try {
+            setEvents(workOrders.map(toWorkOrderEvent));
+          } catch (error) {
+            console.error('Error converting work orders to events:', error);
+          }
         }
-        
-        const calendarEvents = validWorkOrders.map((order: WorkOrder) => {
-          const event = toWorkOrderEvent(order);
-          return event;
-        });
-        
-        setEvents(calendarEvents);
       } catch (error) {
         console.error('Error fetching work orders:', error);
       }
