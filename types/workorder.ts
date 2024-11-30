@@ -1,5 +1,28 @@
 /**
  * @fileoverview Core types and utilities for work order management in the Docket application.
+ * 
+ * This file defines the type hierarchy and utilities for work order data throughout the application:
+ * 
+ * Type Hierarchy:
+ * WorkOrderBase (Common Properties)
+ *        ↓
+ * WorkOrder (Main Application Model)
+ *        ↓
+ *    ┌────┴────┐
+ *    ↓         ↓
+ * WorkOrderFormData   WorkOrderEvent
+ * (Form Handling)    (Calendar Display)
+ * 
+ * The hierarchy is designed to:
+ * 1. Provide a consistent base structure (WorkOrderBase)
+ * 2. Support different contexts (forms, calendar, general use)
+ * 3. Include utility functions for data transformation and validation
+ * 
+ * Key Features:
+ * - Date handling and formatting
+ * - Type guards for runtime validation
+ * - Conversion utilities between different work order types
+ * - Calendar-specific formatting and styling
  */
 
 import { WorkOrderType, WorkOrderStatus, UserRole } from '@prisma/client'
