@@ -1,18 +1,85 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { WorkOrder } from '@/types/workorder';
+import { Prisma } from '@prisma/client';
+
+// Define the exact type that Prisma returns
+type PrismaWorkOrder = Prisma.WorkOrderGetPayload<{
+  include: {
+    assignedTo: {
+      select: {
+        id: true;
+        firstName: true;
+        lastName: true;
+        email: true;
+        role: true;
+        phone: true;
+      };
+    };
+    supervisor: {
+      select: {
+        id: true;
+        firstName: true;
+        lastName: true;
+        email: true;
+        role: true;
+        phone: true;
+      };
+    };
+  };
+}>;
+
+/**
+ * Transforms a Prisma work order into our domain WorkOrder type
+ */
+function toDomainWorkOrder(dbWorkOrder: PrismaWorkOrder): WorkOrder {
+  return {
+    id: dbWorkOrder.id,
+    title: `${dbWorkOrder.fameNumber} - ${dbWorkOrder.clientName}`,
+    fameNumber: dbWorkOrder.fameNumber,
+    type: dbWorkOrder.type,
+    status: dbWorkOrder.status,
+    clientName: dbWorkOrder.clientName,
+    clientEmail: dbWorkOrder.clientEmail || undefined,
+    clientPhone: dbWorkOrder.clientPhone || undefined,
+    startDate: dbWorkOrder.startDate,
+    endDate: dbWorkOrder.endDate,
+    assignedTo: {
+      id: dbWorkOrder.assignedTo.id,
+      firstName: dbWorkOrder.assignedTo.firstName,
+      lastName: dbWorkOrder.assignedTo.lastName,
+      email: dbWorkOrder.assignedTo.email,
+      role: dbWorkOrder.assignedTo.role,
+      phone: dbWorkOrder.assignedTo.phone,
+    },
+    supervisor: dbWorkOrder.supervisor
+      ? {
+          id: dbWorkOrder.supervisor.id,
+          firstName: dbWorkOrder.supervisor.firstName,
+          lastName: dbWorkOrder.supervisor.lastName,
+          email: dbWorkOrder.supervisor.email,
+          role: dbWorkOrder.supervisor.role,
+          phone: dbWorkOrder.supervisor.phone,
+        }
+      : undefined,
+  };
+}
 
 /**
  * Handles GET requests to retrieve work orders.
  */
-export async function GET() {
+export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string }>> {
   try {
-    const workOrders = await prisma.workOrder.findMany({
+    const dbWorkOrders = await prisma.workOrder.findMany({
       include: {
         assignedTo: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
+            email: true,
+            role: true,
+            phone: true,
           },
         },
         supervisor: {
@@ -20,6 +87,9 @@ export async function GET() {
             id: true,
             firstName: true,
             lastName: true,
+            email: true,
+            role: true,
+            phone: true,
           },
         },
       },
@@ -27,7 +97,9 @@ export async function GET() {
         startDate: 'asc',
       },
     });
-    
+
+    // Transform database models to domain models
+    const workOrders = dbWorkOrders.map(toDomainWorkOrder);
     return NextResponse.json(workOrders);
   } catch (error) {
     console.error('Error fetching work orders:', error);
@@ -59,7 +131,7 @@ export async function POST(request: Request) {
         deliveryLocationId: data.deliveryLocationId,
       },
     });
-    
+
     return NextResponse.json(workOrder);
   } catch (error) {
     console.error('Error creating work order:', error);
