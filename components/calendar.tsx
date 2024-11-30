@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import dayGridPlugin from "@fullcalendar/daygrid"
 import { Button } from "@/components/ui/button"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -15,9 +16,11 @@ interface WorkOrderEvent {
   end: Date
   backgroundColor?: string
   borderColor?: string
+  textColor?: string
   type: WorkOrderType
   status: WorkOrderStatus
   clientName: string
+  fameNumber: string
   extendedProps: {
     type: WorkOrderType
     status: WorkOrderStatus
@@ -28,6 +31,8 @@ interface WorkOrderEvent {
     startHour: string
     endHour: string
     location: string
+    truckNumber?: string
+    technician?: string
   }
 }
 
@@ -47,6 +52,40 @@ const getEventColor = (type: WorkOrderType) => {
       return { backgroundColor: "#6b7280", borderColor: "#4b5563" }
   }
 }
+
+const getWorkOrderTypeInitials = (type: string) => {
+  switch (type) {
+    case 'PICKUP':
+      return 'PU';
+    case 'ACTIVATION':
+      return 'AC';
+    case 'TEARDOWN':
+      return 'TD';
+    case 'DELIVERY':
+      return 'D';
+    case 'SETUP':
+      return 'SU';
+    default:
+      return type;
+  }
+};
+
+const getWorkOrderTypeColor = (type: string) => {
+  switch (type) {
+    case 'PICKUP':
+      return '#FFDAB9'; // Peach
+    case 'ACTIVATION':
+      return '#98FB98'; // Pale green
+    case 'TEARDOWN':
+      return '#DDA0DD'; // Plum
+    case 'DELIVERY':
+      return '#87CEEB'; // Sky blue
+    case 'SETUP':
+      return '#FFE4B5'; // Moccasin
+    default:
+      return '#E0E0E0'; // Light gray
+  }
+};
 
 export function Calendar({
   onEventSelect,
@@ -70,47 +109,69 @@ export function Calendar({
         console.log('Fetched work orders:', workOrders);
         
         const calendarEvents = workOrders.map((order: any) => {
-          const colors = getEventColor(order.type);
+          console.log('Processing order:', order);
           
-          // Create start date from startDate and startHour
-          const startDateTime = new Date(order.startDate);
-          const [startHour, startMinute] = order.startHour.split(':');
-          startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
-
-          // Create end date from startDate and endHour
-          const endDateTime = new Date(order.startDate);
-          if (order.endHour) {
-            const [endHour, endMinute] = order.endHour.split(':');
-            endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
-          } else {
-            // If no endHour, set to 2 hours after start
-            endDateTime.setHours(startDateTime.getHours() + 2);
+          // Get the date from startDate and adjust for timezone
+          const originalDate = new Date(order.startDate);
+          console.log('Original date from DB:', originalDate);
+          
+          // Adjust the date to local timezone without changing the date
+          const localDate = new Date(originalDate.getUTCFullYear(), 
+                                   originalDate.getUTCMonth(), 
+                                   originalDate.getUTCDate());
+          console.log('Local date:', localDate);
+          
+          // Parse hours
+          const [startHour, startMinute] = (order.startHour || '00:00').split(':').map(Number);
+          const [endHour, endMinute] = (order.endHour || '00:00').split(':').map(Number);
+          
+          // Create event dates
+          const eventStart = new Date(localDate);
+          eventStart.setHours(startHour, startMinute, 0, 0);
+          
+          const eventEnd = new Date(localDate);
+          eventEnd.setHours(endHour, endMinute, 0, 0);
+          
+          // If end time is before start time, move to next day
+          if (eventEnd < eventStart) {
+            eventEnd.setDate(eventEnd.getDate() + 1);
           }
+          
+          console.log('Final event start:', eventStart);
+          console.log('Final event end:', eventEnd);
 
-          return {
+          const event = {
             id: order.id,
-            title: `${order.fameNumber} - ${order.clientName}`,
-            start: startDateTime,
-            end: endDateTime,
-            ...colors,
+            title: `${order.type} - ${order.fameNumber} - ${order.clientName}`,
+            start: eventStart,
+            end: eventEnd,
+            allDay: false,
+            backgroundColor: getWorkOrderTypeColor(order.type),
+            borderColor: 'transparent',
+            textColor: '#000000',
             type: order.type,
             status: order.status,
             clientName: order.clientName,
+            fameNumber: order.fameNumber,
             extendedProps: {
               type: order.type,
               status: order.status,
-              clientName: order.clientName,
-              createdBy: `${order.createdBy.firstName} ${order.createdBy.lastName}`,
-              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : '',
               fameNumber: order.fameNumber,
-              startHour: order.startHour,
-              endHour: order.endHour || 'TBD',
-              location: order.location,
+              clientName: order.clientName,
+              createdBy: order.createdBy ? `${order.createdBy.firstName} ${order.createdBy.lastName}` : 'N/A',
+              supervisor: order.supervisor ? `${order.supervisor.firstName} ${order.supervisor.lastName}` : 'N/A',
+              startHour: order.startHour || 'N/A',
+              endHour: order.endHour || 'N/A',
+              location: order.location || 'N/A',
+              truckNumber: order.truckNumber || 'N/A',
+              technician: order.technician || 'N/A'
             }
           };
+          
+          console.log('Created calendar event:', event);
+          return event;
         });
         
-        console.log('Setting calendar events:', calendarEvents);
         setEvents(calendarEvents);
       } catch (error) {
         console.error('Error fetching work orders:', error);
@@ -178,34 +239,20 @@ export function Calendar({
     <div className="h-full">
       <FullCalendar
         height="100%"
-        plugins={[timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
         headerToolbar={{
-          left: 'prev,next',
+          left: 'prev,next today',
           center: 'title',
-          right: 'timeGridDay,timeGridWeek'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        views={{
-          timeGridWeek: {
-            titleFormat: { month: 'short', day: 'numeric' },
-            dayHeaderFormat: { weekday: 'short', day: 'numeric' },
-            slotDuration: '01:00:00',
-          },
-          timeGridDay: {
-            titleFormat: { month: 'short', day: 'numeric' },
-            slotDuration: '01:00:00',
-          }
+        timeZone="UTC"
+        slotDuration="01:00:00"
+        slotLabelFormat={{
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
         }}
-        windowResize={function(view) {
-          if (window.innerWidth < 768) {
-            calendarApi.changeView('timeGridDay');
-          } else {
-            calendarApi.changeView('timeGridWeek');
-          }
-        }}
-        allDaySlot={false}
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
         events={events}
         editable={true}
         eventDrop={handleEventDrop}
@@ -214,16 +261,26 @@ export function Calendar({
             setCalendarApi(el.getApi())
           }
         }}
-        eventContent={(arg) => {
-          const event = arg.event
+        eventContent={(eventInfo) => {
+          const event = eventInfo.event;
           return (
-            <div className="p-1">
-              <div className="font-medium">{event.title}</div>
-              <div>Client: {event.extendedProps.clientName}</div>
-              <div>Created By: {event.extendedProps.createdBy}</div>
-              <div>Location: {event.extendedProps.location}</div>
+            <div className="p-1 text-xs" style={{
+              backgroundColor: getWorkOrderTypeColor(event.extendedProps.type),
+              border: 'none',
+              height: '100%',
+              width: '100%'
+            }}>
+              <div>{event.extendedProps.startHour} - {event.extendedProps.endHour || 'TBD'}</div>
+              <div>
+                {getWorkOrderTypeInitials(event.extendedProps.type)}-
+                {event.extendedProps.fameNumber}-
+                {event.extendedProps.clientName}
+              </div>
+              <div>
+                {event.extendedProps.truckNumber || ''} {event.extendedProps.technician || ''}
+              </div>
             </div>
-          )
+          );
         }}
         eventClick={(info) => {
           onEventSelect(info.event as unknown as WorkOrderEvent)

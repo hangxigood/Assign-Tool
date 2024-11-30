@@ -38,6 +38,8 @@ model WorkOrder {
   location          String
   noteText          String?
   documentUrl       String?
+  truckNumber       String?
+  technician        String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   cancelledAt        DateTime?
