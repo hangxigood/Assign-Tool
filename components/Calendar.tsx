@@ -9,7 +9,7 @@ import { useState, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import { WorkOrderEvent, WorkOrder, toWorkOrderEvent } from "@/types/workorder"
+import { WorkOrderEvent, WorkOrder, toWorkOrderEvent, isValidWorkOrder } from "@/types/workorder"
 import { CalendarApi, EventClickArg, EventDropArg } from '@fullcalendar/core'
 
 /**
@@ -31,9 +31,15 @@ export function Calendar({
       try {
         const response = await fetch('/api/workorders');
         if (!response.ok) throw new Error('Failed to fetch work orders');
-        const workOrders: WorkOrder[] = await response.json();
+        const data = await response.json();
         
-        const calendarEvents = workOrders.map((order: WorkOrder) => {
+        // Validate each work order
+        const validWorkOrders = data.filter((order: any) => isValidWorkOrder(order));
+        if (validWorkOrders.length !== data.length) {
+          console.warn('Some work orders failed validation');
+        }
+        
+        const calendarEvents = validWorkOrders.map((order: WorkOrder) => {
           const event = toWorkOrderEvent(order);
           return event;
         });
