@@ -7,13 +7,13 @@ import { StatsBar } from "@/components/StatsBar"
 import { EventDetailsSidebar } from "@/components/EventDetailsSidebar"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { WorkOrderEvent } from "@/types/workorder"
 import { useWorkOrders } from "@/hooks/useWorkOrders"
+import { useSelectedWorkOrder } from "@/hooks/useSelectedWorkOrder"
 
 export default function Page() {
-  const [selectedEvent, setSelectedEvent] = useState<WorkOrderEvent | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { events, isLoading, error } = useWorkOrders()
+  const { selectedEvent, selectedFormData, setSelectedWorkOrder, clearSelection } = useSelectedWorkOrder()
 
   return (
     <>
@@ -27,7 +27,8 @@ export default function Page() {
         </Button>
 
         <Sidebar 
-          onEventSelect={setSelectedEvent} 
+          onEventSelect={setSelectedWorkOrder}
+          selectedEvent={selectedEvent}
           isOpen={sidebarOpen} 
           onClose={() => setSidebarOpen(false)} 
         />
@@ -39,7 +40,10 @@ export default function Page() {
               {isLoading ? (
                 <div>Loading...</div>
               ) : (
-                <Calendar onEventSelect={setSelectedEvent} events={events} />
+                <Calendar 
+                  onEventSelect={setSelectedWorkOrder} 
+                  events={events} 
+                />
               )}
             </div>
             <StatsBar />
@@ -48,7 +52,8 @@ export default function Page() {
       </div>
       <EventDetailsSidebar
         event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
+        formData={selectedFormData}
+        onClose={clearSelection}
       />
     </>
   )
