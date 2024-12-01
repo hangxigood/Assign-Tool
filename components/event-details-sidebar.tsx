@@ -2,11 +2,10 @@
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Edit } from 'lucide-react'
+import { X } from 'lucide-react'
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from 'next/navigation'
-import { WorkOrderEditDialog } from "./work-order-edit-dialog"
 import { format } from "date-fns"
 
 export interface EventDetailsProps {
@@ -29,6 +28,11 @@ export interface EventDetailsProps {
       startHour: string
       endHour: string
       location: string
+      notes?: string
+      documents?: {
+        name: string
+        url: string
+      }[]
       truckNumber?: string
       technician?: string
     }
@@ -39,7 +43,6 @@ export interface EventDetailsProps {
 export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,45 +57,30 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
     }
   }, [onClose])
 
-  const handleEdit = () => {
-    setEditDialogOpen(true)
+  const displayValue = (value: string | undefined | null) => {
+    return value || 'N/A'
   }
 
-  const handleSave = async (updatedWorkOrder: any) => {
-    // Implement save logic here
-    setEditDialogOpen(false)
-  }
-
-  if (!event) return null;
-
-  // Construir el título con el formato correcto usando extendedProps
-  const title = `${event.extendedProps.type} - ${event.extendedProps.fameNumber} - ${event.extendedProps.clientName}`;
-  
   // Función segura para formatear fechas
   const formatDateSafe = (dateStr: string | Date | null | undefined) => {
     if (!dateStr) return 'N/A';
     try {
       const date = new Date(dateStr);
-      // Verificar si la fecha es válida
       if (isNaN(date.getTime())) {
         return 'Invalid Date';
       }
       return format(date, 'MMMM d, yyyy');
     } catch (error) {
       console.error('Error formatting date:', error);
-      return 'Invalid Date';
+      return 'N/A';
     }
   };
 
-  const formattedDate = formatDateSafe(event.start);
+  const formattedDate = formatDateSafe(event?.start);
 
-  // Función para mostrar valores con fallback
-  const displayValue = (value: any, fallback = 'N/A') => {
-    if (value === null || value === undefined || value === '') {
-      return fallback;
-    }
-    return value;
-  };
+  if (!event) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 z-50">
@@ -104,9 +92,6 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Work Order Details</h2>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={handleEdit}>
-              <Edit className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -116,14 +101,14 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
           <div className="p-4 space-y-4">
             <div>
               <h3 className="font-medium text-gray-500">Title</h3>
-              <p className="text-sm">{title}</p>
+              <p className="text-sm">{event.title}</p>
             </div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Type</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.type)}</p>
+              <p className="text-sm">{displayValue(event.type)}</p>
             </div>
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">FAME</h3>
+              <h3 className="font-medium text-gray-500">FAME Number</h3>
               <p className="text-sm">{displayValue(event.extendedProps.fameNumber)}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -150,32 +135,38 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium text-gray-500">Created By</h3>
               <p className="text-sm">{displayValue(event.extendedProps.createdBy)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">Supervisor</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.supervisor)}</p>
+            <div className="mt-6">
+              <h3 className="font-medium text-gray-500 mb-2">Notes</h3>
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm whitespace-pre-wrap">
+                  {displayValue(event.extendedProps.notes)}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">Truck Number</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.truckNumber)}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">Technician</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.technician)}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">Status</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.status)}</p>
+            <div className="mt-6">
+              <h3 className="font-medium text-gray-500 mb-2">Documents</h3>
+              <div className="space-y-2">
+                {event.extendedProps.documents && event.extendedProps.documents.length > 0 ? (
+                  event.extendedProps.documents.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {doc.name}
+                      </a>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No documents attached</p>
+                )}
+              </div>
             </div>
           </div>
         </ScrollArea>
       </div>
-      
-      <WorkOrderEditDialog
-        workOrder={event}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSave={handleSave}
-      />
     </div>
   );
 }
