@@ -41,6 +41,14 @@ interface WorkOrderEditDialogProps {
   onDelete?: () => void
 }
 
+interface Location {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+}
+
 /**
  * Dialog component for editing work order details
  * @component
@@ -55,6 +63,7 @@ export function WorkOrderEditDialog({
 }: WorkOrderEditDialogProps) {
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [formData, setFormData] = useState<WorkOrderFormData>(getDefaultFormData());
 
   // Update form data when workOrder changes
@@ -68,31 +77,34 @@ export function WorkOrderEditDialog({
   }, [workOrder]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const [techResponse, supervisorResponse] = await Promise.all([
+        const [techResponse, supervisorResponse, locationsResponse] = await Promise.all([
           fetch('/api/users/?role=technicians'),
-          fetch('/api/users/?role=supervisors')
+          fetch('/api/users/?role=supervisors'),
+          fetch('/api/locations')
         ]);
 
-        if (!techResponse.ok || !supervisorResponse.ok) {
-          throw new Error('Failed to fetch users');
+        if (!techResponse.ok || !supervisorResponse.ok || !locationsResponse.ok) {
+          throw new Error('Failed to fetch data');
         }
 
-        const [techData, supervisorData] = await Promise.all([
+        const [techData, supervisorData, locationsData] = await Promise.all([
           techResponse.json(),
-          supervisorResponse.json()
+          supervisorResponse.json(),
+          locationsResponse.json()
         ]);
 
         setTechnicians(techData);
         setSupervisors(supervisorData);
+        setLocations(locationsData);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
     if (open) {
-      fetchUsers();
+      fetchData();
     }
   }, [open]);
 
@@ -249,23 +261,41 @@ export function WorkOrderEditDialog({
             </div>
 
             <div className="input-group">
-              <Label htmlFor="pickupLocationId">Pickup Location</Label>
-              <Input
-                id="pickupLocationId"
+              <Label htmlFor="pickupLocation">Pickup Location</Label>
+              <Select
                 value={formData.pickupLocationId}
-                onChange={(e) => setFormData(prev => ({ ...prev, pickupLocationId: e.target.value }))}
-                className="col-span-3"
-              />
+                onValueChange={(value) => setFormData(prev => ({ ...prev, pickupLocationId: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select pickup location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name} - {location.address}, {location.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="input-group">
-              <Label htmlFor="deliveryLocationId">Delivery Location</Label>
-              <Input
-                id="deliveryLocationId"
+              <Label htmlFor="deliveryLocation">Delivery Location</Label>
+              <Select
                 value={formData.deliveryLocationId}
-                onChange={(e) => setFormData(prev => ({ ...prev, deliveryLocationId: e.target.value }))}
-                className="col-span-3"
-              />
+                onValueChange={(value) => setFormData(prev => ({ ...prev, deliveryLocationId: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select delivery location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name} - {location.address}, {location.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="input-group">
