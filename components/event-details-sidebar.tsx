@@ -53,12 +53,19 @@ export interface EventDetailsProps {
 export function EventDetailsSidebar({ event: initialEvent, onClose }: EventDetailsProps) {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [event, setEvent] = useState(initialEvent)
 
   const isSupervisor = session?.user?.role === 'SUPERVISOR'
+
+  useEffect(() => {
+    console.log('Session Status:', status)
+    console.log('Session Data:', session)
+    console.log('User Role:', session?.user?.role)
+    console.log('Is Supervisor:', isSupervisor)
+  }, [session, status, isSupervisor])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -154,6 +161,19 @@ export function EventDetailsSidebar({ event: initialEvent, onClose }: EventDetai
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Work Order Details</h2>
             <div className="flex items-center space-x-2">
+              {isSupervisor && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setEditDialogOpen(true)
+                  }}
+                  disabled={isLoading}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
