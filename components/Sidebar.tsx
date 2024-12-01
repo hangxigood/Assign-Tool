@@ -39,10 +39,16 @@ function getWorkOrderIcon(type: WorkOrderType) {
  * @param {Object} props - Component props
  * @param {WorkOrder} props.workOrder - The work order to display
  * @param {function} props.onSelect - Callback when the work order is selected
+ * @param {boolean} props.isSelected - Whether the work order is currently selected
  */
-function WorkOrderItem({ workOrder, onSelect }: { 
+function WorkOrderItem({ 
+  workOrder, 
+  onSelect,
+  isSelected 
+}: { 
   workOrder: WorkOrder, 
-  onSelect: (event: WorkOrderEvent) => void 
+  onSelect: (event: WorkOrderEvent) => void,
+  isSelected: boolean
 }) {
   const handleClick = () => {
     const event = toWorkOrderEvent(workOrder);
@@ -51,7 +57,11 @@ function WorkOrderItem({ workOrder, onSelect }: {
 
   return (
     <div 
-      className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
+      className={`rounded-lg p-3 transition-colors cursor-pointer ${
+        isSelected 
+          ? 'bg-blue-600 hover:bg-blue-500' 
+          : 'bg-gray-700 hover:bg-gray-600'
+      }`}
       onClick={handleClick}
     >
       <div className="flex items-center gap-2">
@@ -86,6 +96,8 @@ interface SidebarProps {
   isOpen: boolean
   /** Callback function to close the sidebar */
   onClose: () => void
+  /** Currently selected work order event */
+  selectedEvent: WorkOrderEvent | null
 }
 
 /**
@@ -93,7 +105,7 @@ interface SidebarProps {
  * @component
  * @param {SidebarProps} props - Component props
  */
-export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent }: SidebarProps) {
   const { data: session } = useSession()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
 
@@ -161,7 +173,12 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
               <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
               <div className="space-y-4 mt-2">
                 {workOrders.map((workOrder) => (
-                  <WorkOrderItem key={workOrder.id} workOrder={workOrder} onSelect={onEventSelect} />
+                  <WorkOrderItem 
+                    key={workOrder.id} 
+                    workOrder={workOrder} 
+                    onSelect={onEventSelect}
+                    isSelected={workOrder.id === selectedEvent?.id}
+                  />
                 ))}
                 {workOrders.length === 0 && (
                   <div className="text-sm text-gray-400 text-center py-4">
