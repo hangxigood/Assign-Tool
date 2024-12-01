@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { WorkOrder } from '@/types/workorder';
+import { WorkOrderEditDialog } from '@/components/WorkOrderEditDialog';
 
 export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function WorkOrdersPage() {
   };
 
   const handleCreateNew = () => {
-    router.push('/workorders/new');
+    setDialogOpen(true);
   };
 
   const handleEdit = (id: string) => {
@@ -120,6 +122,16 @@ export default function WorkOrdersPage() {
           </Table>
         </div>
       </div>
+
+      <WorkOrderEditDialog
+        workOrder={null}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSave={() => {
+          setDialogOpen(false);
+          fetchWorkOrders();
+        }}
+      />
     </div>
   );
 }
