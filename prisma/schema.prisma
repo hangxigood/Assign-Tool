@@ -22,6 +22,7 @@ model User {
   schedules        Schedule[]
   cancelledOrders  WorkOrder[] @relation("CancelledBy")
   createdOrders    WorkOrder[] @relation("CreatedBy")
+  supervisedOrders WorkOrder[] @relation("SupervisedBy")
 }
 
 model WorkOrder {
@@ -45,8 +46,10 @@ model WorkOrder {
   cancelledAt        DateTime?
   createdById        String
   cancelledById      String?
+  supervisorId       String?
   createdBy          User            @relation("CreatedBy", fields: [createdById], references: [id])
   cancelledBy        User?           @relation("CancelledBy", fields: [cancelledById], references: [id])
+  supervisor         User?           @relation("SupervisedBy", fields: [supervisorId], references: [id])
   equipment          Equipment[]     @relation("EquipmentToWorkOrder")
   documents          Document[]
   notes              Note[]

@@ -99,6 +99,7 @@ async function main() {
         location: '123 Test St, Calgary',
         noteText: 'Test work order',
         createdById: admin.id,
+        supervisorId: supervisor.id,
       },
       create: {
         fameNumber: 'WO-2024-001',
@@ -113,6 +114,7 @@ async function main() {
         location: '123 Test St, Calgary',
         noteText: 'Test work order',
         createdById: admin.id,
+        supervisorId: supervisor.id,
       },
     }),
     
@@ -128,6 +130,7 @@ async function main() {
         endHour: '18:00',
         location: '456 Test Ave, Calgary',
         createdById: admin.id,
+        supervisorId: supervisor.id,
       },
       create: {
         fameNumber: 'WO-2024-002',
@@ -139,6 +142,7 @@ async function main() {
         endHour: '18:00',
         location: '456 Test Ave, Calgary',
         createdById: admin.id,
+        supervisorId: supervisor.id,
       },
     }),
   ])

@@ -8,6 +8,7 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import { Button } from "@/components/ui/button"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { addDays, parseISO } from "date-fns"
 
 interface WorkOrderEvent {
   id: string
@@ -33,6 +34,7 @@ interface WorkOrderEvent {
     location: string
     truckNumber?: string
     technician?: string
+    rawDate: string
   }
 }
 
@@ -111,20 +113,27 @@ export function Calendar({
         const calendarEvents = workOrders.map((order: any) => {
           console.log('Processing order:', order);
           
-          // Get the date from startDate
+          // Get the date from startDate and adjust for timezone
           const originalDate = new Date(order.startDate);
-          console.log('Original date from DB:', originalDate);
+          
+          // Add one day to compensate for timezone difference
+          const adjustedDate = addDays(originalDate, 1);
+          
+          console.log('Date handling:', {
+            originalDate,
+            adjustedDate
+          });
           
           // Parse hours and minutes from startHour
           const [startHour, startMinute] = (order.startHour || '00:00').split(':').map(Number);
           const [endHour, endMinute] = (order.endHour || '00:00').split(':').map(Number);
           
-          // Create event start date in local time
-          const eventStart = new Date(originalDate);
+          // Create event start date using adjusted date
+          const eventStart = new Date(adjustedDate);
           eventStart.setHours(startHour, startMinute, 0, 0);
           
           // Create event end date
-          const eventEnd = new Date(originalDate);
+          const eventEnd = new Date(adjustedDate);
           if (order.endHour) {
             eventEnd.setHours(endHour, endMinute, 0, 0);
           } else {
@@ -163,7 +172,8 @@ export function Calendar({
               endHour: order.endHour || 'N/A',
               location: order.location || 'N/A',
               truckNumber: order.truckNumber || 'N/A',
-              technician: order.technician || 'N/A'
+              technician: order.technician || 'N/A',
+              rawDate: adjustedDate.toISOString()
             }
           };
           
