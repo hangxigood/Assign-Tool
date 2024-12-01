@@ -12,12 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { WorkOrder } from '@/types/workorder';
+import { WorkOrder, WorkOrderEvent, toWorkOrderEvent } from '@/types/workorder';
 import { WorkOrderEditDialog } from '@/components/WorkOrderEditDialog';
 
 export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrderEvent | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,11 +37,17 @@ export default function WorkOrdersPage() {
   };
 
   const handleCreateNew = () => {
+    setSelectedWorkOrder(null);
     setDialogOpen(true);
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/workorders/${id}`);
+    const workOrder = workOrders.find(wo => wo.id === id);
+    if (workOrder) {
+      const workOrderEvent = toWorkOrderEvent(workOrder);
+      setSelectedWorkOrder(workOrderEvent);
+      setDialogOpen(true);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -124,13 +131,24 @@ export default function WorkOrdersPage() {
       </div>
 
       <WorkOrderEditDialog
-        workOrder={null}
+        workOrder={selectedWorkOrder}
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setSelectedWorkOrder(null);
+          }
+        }}
         onSave={() => {
           setDialogOpen(false);
+          setSelectedWorkOrder(null);
           fetchWorkOrders();
         }}
+        onDelete={selectedWorkOrder ? () => {
+          handleDelete(selectedWorkOrder.id);
+          setDialogOpen(false);
+          setSelectedWorkOrder(null);
+        } : undefined}
       />
     </div>
   );
