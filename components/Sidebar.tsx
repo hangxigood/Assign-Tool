@@ -5,13 +5,14 @@
  * @module Sidebar
  */
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, LogOut, Truck, PenTool, Box } from 'lucide-react'
+import { Calendar, LogOut, Truck, PenTool, Box, Plus } from 'lucide-react'
 import { useSession, signOut } from "next-auth/react"
 import { WorkOrderType } from "@prisma/client"
 import { WorkOrderEvent, formatDateTime } from "@/types/workorder"
+import { WorkOrderEditDialog } from "./WorkOrderEditDialog"
 
 /**
  * Get the appropriate icon component for a work order type
@@ -110,6 +111,7 @@ interface SidebarProps {
  */
 export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrders, isLoading }: SidebarProps) {
   const { data: session } = useSession()
+  const [showAddDialog, setShowAddDialog] = useState(false)
 
   // Filter and sort work orders
   const filteredAndSortedOrders = useMemo(() => {
@@ -157,7 +159,18 @@ export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrd
               </Button>
             </div>
             <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white hover:bg-gray-700"
+                  onClick={() => setShowAddDialog(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+
+                </Button>
+              </div>
               <div className="space-y-4 mt-2">
                 {filteredAndSortedOrders.map((workOrder) => (
                   <WorkOrderItem 
@@ -177,6 +190,16 @@ export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrd
           </div>
         </ScrollArea>
       </div>
+      <WorkOrderEditDialog
+        workOrder={null}
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSave={() => {
+          setShowAddDialog(false)
+          // Refresh the work orders list
+          window.location.reload()
+        }}
+      />
     </>
   )
 }

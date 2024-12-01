@@ -96,24 +96,28 @@ export function WorkOrderEditDialog({
     }
   }, [open]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+
     try {
-      const response = await fetch(`/api/workorders/${workOrder?.id}`, {
-        method: 'PUT',
+      const url = workOrder?.id ? `/api/workorders/${workOrder.id}` : '/api/workorders'
+      const method = workOrder?.id ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
       })
       
-      if (!response.ok) throw new Error('Failed to update work order')
+      if (!response.ok) throw new Error(`Failed to ${workOrder?.id ? 'update' : 'create'} work order`)
       
-      await response.json();
+      await response.json()
       onSave()
       onOpenChange(false)
     } catch (error) {
-      console.error('Error updating work order:', error)
+      console.error(`Error ${workOrder?.id ? 'updating' : 'creating'} work order:`, error)
     }
   }
 
