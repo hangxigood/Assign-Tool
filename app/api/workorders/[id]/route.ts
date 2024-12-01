@@ -86,6 +86,48 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  request: Request,
+  context: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Verificar si el usuario es un supervisor
+  if (session.user.role !== 'SUPERVISOR') {
+    return NextResponse.json(
+      { error: 'Only supervisors can update work orders' },
+      { status: 403 }
+    );
+  }
+
+  const { id } = context.params;
+  const data = await request.json();
+  const { truckNumber, technician } = data;
+
+  try {
+    const updatedWorkOrder = await prisma.workOrder.update({
+      where: { id },
+      data: {
+        truckNumber,
+        technician,
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json(updatedWorkOrder);
+  } catch (error) {
+    console.error('Error updating work order:', error);
+    return NextResponse.json(
+      { error: 'Failed to update work order' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: Request,
   context: { params: { id: string } }

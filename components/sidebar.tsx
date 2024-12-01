@@ -113,6 +113,7 @@ interface SidebarProps {
 export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
   const { data: session } = useSession()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
+  const isTechnician = session?.user?.role === 'TECHNICIAN'
 
   useEffect(() => {
     const fetchWorkOrders = async () => {
@@ -141,6 +142,11 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
     fetchWorkOrders()
   }, [session])
 
+  // Si es técnico, no mostrar la barra inferior
+  if (isTechnician) {
+    return null
+  }
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -158,7 +164,6 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-xl font-bold">Hello, User</h2>
           <Button 
             variant="ghost" 
             size="icon"
@@ -171,10 +176,8 @@ export function Sidebar({ onEventSelect, isOpen, onClose }: SidebarProps) {
 
         <ScrollArea className="h-[calc(100vh-64px)]">
           <div className="p-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">
-                Hello, {session?.user?.firstName || 'User'}
-              </h2>
+            <div className="mt-1 flex items-center justify-between">
+              <span className="text-xs text-gray-400">{session?.user?.firstName || 'User'}</span>
               <Button
                 variant="ghost"
                 size="icon"

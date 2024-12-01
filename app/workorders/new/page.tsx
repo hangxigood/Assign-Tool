@@ -25,6 +25,12 @@ export default function NewWorkOrder() {
     },
   });
   
+  useEffect(() => {
+    if (session?.user?.role === 'SUPERVISOR') {
+      router.push('/'); // Redirige a la página principal si es SUPERVISOR
+    }
+  }, [session, router]);
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: '',

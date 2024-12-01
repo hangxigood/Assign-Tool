@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 
 interface Stats {
   totalTrucks: number
@@ -12,8 +13,11 @@ interface Stats {
 }
 
 export function StatsBar() {
+  const { data: session } = useSession()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const isTechnician = session?.user?.role === 'TECHNICIAN'
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -30,6 +34,10 @@ export function StatsBar() {
 
     fetchStats()
   }, [])
+
+  if (isTechnician) {
+    return null
+  }
 
   const statsConfig = [
     { 

@@ -2,39 +2,33 @@
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X } from 'lucide-react'
+import { X, Edit } from 'lucide-react'
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from 'next/navigation'
 import { format } from "date-fns"
+import { useSession } from "next-auth/react"
+import { SupervisorEditDialog } from "./supervisor-edit-dialog"
 
 export interface EventDetailsProps {
   event: {
     id: string
     title: string
-    start: Date
-    end: Date
-    type: WorkOrderType
-    status: WorkOrderStatus
+    start: string
+    end: string
     clientName: string
     fameNumber: string
     extendedProps: {
-      type: WorkOrderType
-      status: WorkOrderStatus
-      fameNumber: string
-      clientName: string
       createdBy: string
       supervisor: string
       startHour: string
       endHour: string
       location: string
-      notes?: string
-      documents?: {
-        name: string
-        url: string
-      }[]
-      truckNumber?: string
-      technician?: string
+      truckNumber: string
+      technician: string
+      type: string
+      status: string
+      [key: string]: string
     }
   }
   onClose: () => void
@@ -43,6 +37,10 @@ export interface EventDetailsProps {
 export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { data: session } = useSession()
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+
+  const isSupervisor = session?.user?.role === 'SUPERVISOR'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,29 +55,52 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
     }
   }, [onClose])
 
-  const displayValue = (value: string | undefined | null) => {
-    return value || 'N/A'
+  const handleSave = async (updatedWorkOrder: any) => {
+    try {
+      const response = await fetch(`/api/workorders/${event.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedWorkOrder),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update work order')
+      }
+
+      router.refresh()
+      setEditDialogOpen(false)
+    } catch (error) {
+      console.error('Error updating work order:', error)
+    }
   }
+
+  if (!event) return null
 
   // Función segura para formatear fechas
   const formatDateSafe = (dateStr: string | Date | null | undefined) => {
-    if (!dateStr) return 'N/A';
+    if (!dateStr) return 'N/A'
     try {
-      const date = new Date(dateStr);
+      const date = new Date(dateStr)
       if (isNaN(date.getTime())) {
-        return 'Invalid Date';
+        return 'Invalid Date'
       }
-      return format(date, 'MMMM d, yyyy');
+      return format(date, 'MMMM d, yyyy')
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'N/A';
+      console.error('Error formatting date:', error)
+      return 'Invalid Date'
     }
-  };
+  }
 
-  const formattedDate = formatDateSafe(event?.start);
+  const formattedDate = formatDateSafe(event.start)
 
-  if (!event) {
-    return null;
+  // Función para mostrar valores con fallback
+  const displayValue = (value: any, fallback = 'N/A') => {
+    if (value === null || value === undefined || value === '') {
+      return fallback
+    }
+    return value
   }
 
   return (
@@ -87,11 +108,15 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
       <div 
         ref={sidebarRef}
         className="absolute right-0 top-0 w-80 bg-white dark:bg-gray-800 h-full shadow-lg transform transition-transform duration-200 ease-in-out"
-        style={{ transform: event ? 'translateX(0)' : 'translateX(100%)' }}
       >
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Work Order Details</h2>
           <div className="flex gap-2">
+            {isSupervisor && (
+              <Button variant="ghost" size="icon" onClick={() => setEditDialogOpen(true)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -105,17 +130,17 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
             </div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Type</h3>
-              <p className="text-sm">{displayValue(event.type)}</p>
+              <p className="text-sm">{displayValue(event.extendedProps.type)}</p>
             </div>
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-500">FAME Number</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.fameNumber)}</p>
+              <h3 className="font-medium text-gray-500">FAME</h3>
+              <p className="text-sm">{displayValue(event.fameNumber)}</p>
             </div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Client</h3>
-              <p className="text-sm">{displayValue(event.extendedProps.clientName)}</p>
+              <p className="text-sm">{displayValue(event.clientName)}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div>
               <h3 className="font-medium text-gray-500">Date</h3>
               <p className="text-sm">{formattedDate}</p>
             </div>
@@ -135,38 +160,34 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium text-gray-500">Created By</h3>
               <p className="text-sm">{displayValue(event.extendedProps.createdBy)}</p>
             </div>
-            <div className="mt-6">
-              <h3 className="font-medium text-gray-500 mb-2">Notes</h3>
-              <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm whitespace-pre-wrap">
-                  {displayValue(event.extendedProps.notes)}
-                </p>
-              </div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-gray-500">Supervisor</h3>
+              <p className="text-sm">{displayValue(event.extendedProps.supervisor)}</p>
             </div>
-            <div className="mt-6">
-              <h3 className="font-medium text-gray-500 mb-2">Documents</h3>
-              <div className="space-y-2">
-                {event.extendedProps.documents && event.extendedProps.documents.length > 0 ? (
-                  event.extendedProps.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {doc.name}
-                      </a>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No documents attached</p>
-                )}
-              </div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-gray-500">Truck Number</h3>
+              <p className="text-sm">{displayValue(event.extendedProps.truckNumber)}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-gray-500">Technician</h3>
+              <p className="text-sm">{displayValue(event.extendedProps.technician)}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-gray-500">Status</h3>
+              <p className="text-sm">{displayValue(event.extendedProps.status)}</p>
             </div>
           </div>
         </ScrollArea>
       </div>
+      
+      {isSupervisor && (
+        <SupervisorEditDialog
+          workOrder={event}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSave={handleSave}
+        />
+      )}
     </div>
-  );
+  )
 }
