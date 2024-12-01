@@ -8,7 +8,7 @@
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, Edit } from 'lucide-react'
-import { WorkOrderEvent } from "@/types/workorder"
+import { WorkOrderEvent, formatDateTime } from "@/types/workorder"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from 'next/navigation'
 import { WorkOrderEditDialog } from "./WorkOrderEditDialog"
@@ -84,7 +84,7 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsSidebarProps
             </div>
             <div>
               <h3 className="font-medium">Time</h3>
-              <p>{event.start.toLocaleString()} - {event.end.toLocaleString()}</p>
+              <p>{formatDateTime(event.start)} - {formatDateTime(event.end)}</p>
             </div>
             <div>
               <h3 className="font-medium">Type</h3>
