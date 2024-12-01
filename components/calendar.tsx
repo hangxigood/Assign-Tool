@@ -111,34 +111,33 @@ export function Calendar({
         const calendarEvents = workOrders.map((order: any) => {
           console.log('Processing order:', order);
           
-          // Get the date from startDate and adjust for timezone
+          // Get the date from startDate
           const originalDate = new Date(order.startDate);
           console.log('Original date from DB:', originalDate);
           
-          // Adjust the date to local timezone without changing the date
-          const localDate = new Date(originalDate.getUTCFullYear(), 
-                                   originalDate.getUTCMonth(), 
-                                   originalDate.getUTCDate());
-          console.log('Local date:', localDate);
-          
-          // Parse hours
+          // Parse hours and minutes from startHour
           const [startHour, startMinute] = (order.startHour || '00:00').split(':').map(Number);
           const [endHour, endMinute] = (order.endHour || '00:00').split(':').map(Number);
           
-          // Create event dates
-          const eventStart = new Date(localDate);
+          // Create event start date in local time
+          const eventStart = new Date(originalDate);
           eventStart.setHours(startHour, startMinute, 0, 0);
           
-          const eventEnd = new Date(localDate);
-          eventEnd.setHours(endHour, endMinute, 0, 0);
-          
-          // If end time is before start time, move to next day
-          if (eventEnd < eventStart) {
-            eventEnd.setDate(eventEnd.getDate() + 1);
+          // Create event end date
+          const eventEnd = new Date(originalDate);
+          if (order.endHour) {
+            eventEnd.setHours(endHour, endMinute, 0, 0);
+          } else {
+            // If no end time specified, set duration to 1 hour
+            eventEnd.setHours(startHour + 1, startMinute, 0, 0);
           }
           
-          console.log('Final event start:', eventStart);
-          console.log('Final event end:', eventEnd);
+          console.log('Event times:', {
+            startHour,
+            startMinute,
+            eventStart: eventStart.toLocaleString(),
+            eventEnd: eventEnd.toLocaleString()
+          });
 
           const event = {
             id: order.id,
@@ -246,7 +245,7 @@ export function Calendar({
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        timeZone="UTC"
+        timeZone="local"
         slotDuration="01:00:00"
         slotLabelFormat={{
           hour: 'numeric',

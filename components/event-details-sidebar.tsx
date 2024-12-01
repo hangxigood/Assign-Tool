@@ -130,7 +130,7 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
               <h3 className="font-medium text-gray-500">Client</h3>
               <p className="text-sm">{displayValue(event.extendedProps.clientName)}</p>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <h3 className="font-medium text-gray-500">Date</h3>
               <p className="text-sm">{formattedDate}</p>
             </div>
