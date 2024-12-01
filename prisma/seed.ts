@@ -65,6 +65,148 @@ async function main() {
     },
   })
 
+  // Additional Technicians
+  const technician2Password = await hash('tech123', 12)
+  const technician2 = await prisma.user.upsert({
+    where: { email: 'tech2@example.com' },
+    update: {
+      password: technician2Password,
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7893',
+    },
+    create: {
+      email: 'tech2@example.com',
+      password: technician2Password,
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7893',
+    },
+  })
+
+  const technician3Password = await hash('tech123', 12)
+  const technician3 = await prisma.user.upsert({
+    where: { email: 'tech3@example.com' },
+    update: {
+      password: technician3Password,
+      firstName: 'Michael',
+      lastName: 'Chen',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7894',
+    },
+    create: {
+      email: 'tech3@example.com',
+      password: technician3Password,
+      firstName: 'Michael',
+      lastName: 'Chen',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7894',
+    },
+  })
+
+  const technician4Password = await hash('tech123', 12)
+  const technician4 = await prisma.user.upsert({
+    where: { email: 'tech4@example.com' },
+    update: {
+      password: technician4Password,
+      firstName: 'Emily',
+      lastName: 'Davis',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7895',
+    },
+    create: {
+      email: 'tech4@example.com',
+      password: technician4Password,
+      firstName: 'Emily',
+      lastName: 'Davis',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7895',
+    },
+  })
+
+  const technician5Password = await hash('tech123', 12)
+  const technician5 = await prisma.user.upsert({
+    where: { email: 'tech5@example.com' },
+    update: {
+      password: technician5Password,
+      firstName: 'James',
+      lastName: 'Wilson',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7896',
+    },
+    create: {
+      email: 'tech5@example.com',
+      password: technician5Password,
+      firstName: 'James',
+      lastName: 'Wilson',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7896',
+    },
+  })
+
+  const technician6Password = await hash('tech123', 12)
+  const technician6 = await prisma.user.upsert({
+    where: { email: 'tech6@example.com' },
+    update: {
+      password: technician6Password,
+      firstName: 'Lisa',
+      lastName: 'Brown',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7897',
+    },
+    create: {
+      email: 'tech6@example.com',
+      password: technician6Password,
+      firstName: 'Lisa',
+      lastName: 'Brown',
+      role: UserRole.TECHNICIAN,
+      phone: '123-456-7897',
+    },
+  })
+
+  // Additional Supervisors
+  const supervisor2Password = await hash('super123', 12)
+  const supervisor2 = await prisma.user.upsert({
+    where: { email: 'supervisor2@example.com' },
+    update: {
+      password: supervisor2Password,
+      firstName: 'Robert',
+      lastName: 'Martinez',
+      role: UserRole.SUPERVISOR,
+      phone: '123-456-7898',
+    },
+    create: {
+      email: 'supervisor2@example.com',
+      password: supervisor2Password,
+      firstName: 'Robert',
+      lastName: 'Martinez',
+      role: UserRole.SUPERVISOR,
+      phone: '123-456-7898',
+    },
+  })
+
+  const supervisor3Password = await hash('super123', 12)
+  const supervisor3 = await prisma.user.upsert({
+    where: { email: 'supervisor3@example.com' },
+    update: {
+      password: supervisor3Password,
+      firstName: 'Jennifer',
+      lastName: 'Taylor',
+      role: UserRole.SUPERVISOR,
+      phone: '123-456-7899',
+    },
+    create: {
+      email: 'supervisor3@example.com',
+      password: supervisor3Password,
+      firstName: 'Jennifer',
+      lastName: 'Taylor',
+      role: UserRole.SUPERVISOR,
+      phone: '123-456-7899',
+    },
+  })
+
   // Create test locations
   const warehouse = await prisma.location.create({
     data: {
@@ -83,6 +225,37 @@ async function main() {
       city: 'San Francisco',
       state: 'CA',
       zipCode: '94111',
+    },
+  })
+
+  // Additional Warehouses
+  const warehouse2 = await prisma.location.create({
+    data: {
+      name: 'South Warehouse',
+      address: '456 Industrial Blvd',
+      city: 'San Jose',
+      state: 'CA',
+      zipCode: '95110',
+    },
+  })
+
+  const warehouse3 = await prisma.location.create({
+    data: {
+      name: 'East Warehouse',
+      address: '789 Distribution Way',
+      city: 'Oakland',
+      state: 'CA',
+      zipCode: '94601',
+    },
+  })
+
+  const warehouse4 = await prisma.location.create({
+    data: {
+      name: 'North Warehouse',
+      address: '321 Logistics Ave',
+      city: 'Sacramento',
+      state: 'CA',
+      zipCode: '95814',
     },
   })
 
