@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { WorkOrder } from '@/types/workorder';
 import { Prisma } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authOptions';
 
 // Define the exact type that Prisma returns
 type PrismaWorkOrder = Prisma.WorkOrderGetPayload<{
@@ -26,6 +28,8 @@ type PrismaWorkOrder = Prisma.WorkOrderGetPayload<{
         phone: true;
       };
     };
+    pickupLocation: true;
+    deliveryLocation: true;
   };
 }>;
 
@@ -94,6 +98,8 @@ export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string 
             phone: true,
           },
         },
+        pickupLocation: true,
+        deliveryLocation: true,
       },
       orderBy: {
         startDate: 'asc',
@@ -116,6 +122,11 @@ export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string 
  */
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const workOrder = await prisma.workOrder.create({
       data: {
@@ -125,13 +136,47 @@ export async function POST(request: Request) {
         clientPhone: data.clientPhone,
         clientEmail: data.clientEmail,
         startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        assignedToId: data.assignedToId,
-        createdById: data.createdById,
-        supervisorId: data.supervisorId,
-        pickupLocationId: data.pickupLocationId,
-        deliveryLocationId: data.deliveryLocationId,
+        endDate: new Date(data.endDate),
+        assignedTo: {
+          connect: { id: data.assignedToId }
+        },
+        supervisor: {
+          connect: { id: data.supervisorId }
+        },
+        createdBy: {
+          connect: { id: session.user.id }
+        },
+        pickupLocation: {
+          connect: { id: data.pickupLocationId }
+        },
+        deliveryLocation: {
+          connect: { id: data.deliveryLocationId }
+        }
       },
+      include: {
+        pickupLocation: true,
+        deliveryLocation: true,
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            phone: true,
+          }
+        },
+        supervisor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            phone: true,
+          }
+        }
+      }
     });
 
     return NextResponse.json(workOrder);
