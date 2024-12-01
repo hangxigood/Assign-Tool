@@ -5,7 +5,7 @@
  * @module Calendar
  */
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
@@ -17,44 +17,16 @@ import { CalendarApi, EventClickArg, EventDropArg } from '@fullcalendar/core'
  * @component
  * @param {Object} props - Component props
  * @param {function} props.onEventSelect - Callback function when an event is selected
+ * @param {WorkOrderEvent[]} props.events - Array of work order events to display
  */
 export function Calendar({
-  onEventSelect
+  onEventSelect,
+  events
 }: {
   onEventSelect: (event: WorkOrderEvent | null) => void
+  events: WorkOrderEvent[]
 }) {
-  const [events, setEvents] = useState<WorkOrderEvent[]>([])
   const [calendarApi, setCalendarApi] = useState<CalendarApi | null>(null)
-
-  useEffect(() => {
-    const fetchWorkOrders = async () => {
-      try {
-        const response = await fetch('/api/workorders');
-        if (!response.ok) throw new Error('Failed to fetch work orders');
-        const workOrders = await response.json();
-        
-        // Light validation in production, full validation in development
-        if (process.env.NODE_ENV === 'development') {
-          const validWorkOrders = workOrders.filter((order: WorkOrder) => isValidWorkOrder(order));
-          if (validWorkOrders.length !== workOrders.length) {
-            console.warn('Some work orders failed validation');
-          }
-          setEvents(validWorkOrders.map(toWorkOrderEvent));
-        } else {
-          // In production, trust the API types but catch any runtime errors
-          try {
-            setEvents(workOrders.map(toWorkOrderEvent));
-          } catch (error) {
-            console.error('Error converting work orders to events:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching work orders:', error);
-      }
-    };
-
-    fetchWorkOrders();
-  }, [])
 
   const handleEventDrop = async (info: EventDropArg) => {
     const { event } = info
