@@ -21,6 +21,8 @@ interface EventDetailsSidebarProps {
   event: WorkOrderEvent | null
   /** Callback function when the sidebar is closed */
   onClose: () => void
+  /** Callback function when work order is updated */
+  onUpdate: () => void
 }
 
 /**
@@ -28,7 +30,7 @@ interface EventDetailsSidebarProps {
  * @component
  * @param {EventDetailsSidebarProps} props - Component props
  */
-export function EventDetailsSidebar({ event, onClose }: EventDetailsSidebarProps) {
+export function EventDetailsSidebar({ event, onClose, onUpdate }: EventDetailsSidebarProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -49,11 +51,6 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsSidebarProps
 
   const handleEdit = () => {
     setEditDialogOpen(true)
-  }
-
-  const handleSave = () => {
-    // Refresh the page to show updated data
-    router.refresh();
   }
 
   if (!event) return null;
@@ -119,10 +116,10 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsSidebarProps
       </div>
       
       <WorkOrderEditDialog
-      workOrder={event}
-      open={editDialogOpen}
-      onOpenChange={setEditDialogOpen}
-      onSave={handleSave}
+        workOrder={event}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={onUpdate}
       />
 
     </div>

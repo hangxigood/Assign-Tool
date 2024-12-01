@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Calendar } from "@/components/Calendar"
 import { Sidebar } from "@/components/Sidebar"
 import { StatsBar } from "@/components/StatsBar"
@@ -12,8 +12,21 @@ import { WorkOrderEvent } from "@/types/workorder"
 
 export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const { events, isLoading, error } = useWorkOrders()
+  const { events, isLoading, error, refetch } = useWorkOrders()
   const [selectedEvent, setSelectedEvent] = useState<WorkOrderEvent | null>(null)
+
+  // Update selectedEvent when events change
+  useEffect(() => {
+    if (selectedEvent) {
+      // Find the updated version of the selected event
+      const updatedEvent = events.find(e => e.id === selectedEvent.id)
+      setSelectedEvent(updatedEvent || null)
+    }
+  }, [events, selectedEvent])
+
+  const handleUpdate = async () => {
+    await refetch()
+  }
 
   return (
     <>
@@ -52,9 +65,10 @@ export default function Page() {
           </main>
         </div>
       </div>
-      <EventDetailsSidebar
+      <EventDetailsSidebar 
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
+        onUpdate={handleUpdate}
       />
     </>
   )
