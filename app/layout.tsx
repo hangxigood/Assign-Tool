@@ -3,12 +3,13 @@ import { Inter } from "next/font/google"
 import { Metadata } from "next"
 import { getServerSession } from 'next-auth';
 import SessionProvider from '@/components/SessionProvider';
+import { Toaster } from 'sonner'
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Scheduling Dashboard",
-  description: "Workforce management and scheduling dashboard",
+  title: "Work Order Management System",
+  description: "A system for managing work orders and resources",
 }
 
 export default async function RootLayout({
@@ -26,6 +27,7 @@ export default async function RootLayout({
       <body suppressHydrationWarning className={inter.className}>
         <SessionProvider session={session}>
           {children}
+          <Toaster />
         </SessionProvider>
       </body>
     </html>

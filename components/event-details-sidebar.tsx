@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { format } from "date-fns"
 import { useSession } from "next-auth/react"
 import { SupervisorEditDialog } from "./supervisor-edit-dialog"
+import { toast } from "sonner"
 
 export interface EventDetailsProps {
   event: {
@@ -39,13 +40,16 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const isSupervisor = session?.user?.role === 'SUPERVISOR'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        onClose()
+        if (!editDialogOpen) {
+          onClose()
+        }
       }
     }
 
@@ -53,32 +57,38 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [onClose])
+  }, [onClose, editDialogOpen])
 
-  const handleSave = async (updatedWorkOrder: any) => {
+  const handleSave = async (updatedData: { truckNumber: string; technician: string }) => {
     try {
+      setIsLoading(true)
       const response = await fetch(`/api/workorders/${event.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedWorkOrder),
+        body: JSON.stringify(updatedData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update work order')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update work order')
       }
 
+      const data = await response.json()
+      toast.success('Work order updated successfully')
       router.refresh()
       setEditDialogOpen(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating work order:', error)
+      toast.error(error.message || 'Failed to update work order')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   if (!event) return null
 
-  // Función segura para formatear fechas
   const formatDateSafe = (dateStr: string | Date | null | undefined) => {
     if (!dateStr) return 'N/A'
     try {
@@ -95,7 +105,6 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
 
   const formattedDate = formatDateSafe(event.start)
 
-  // Función para mostrar valores con fallback
   const displayValue = (value: any, fallback = 'N/A') => {
     if (value === null || value === undefined || value === '') {
       return fallback
@@ -103,8 +112,13 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
     return value
   }
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditDialogOpen(true)
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-30 z-50" onClick={(e) => e.stopPropagation()}>
       <div 
         ref={sidebarRef}
         className="absolute right-0 top-0 w-80 bg-white dark:bg-gray-800 h-full shadow-lg transform transition-transform duration-200 ease-in-out"
@@ -113,11 +127,14 @@ export function EventDetailsSidebar({ event, onClose }: EventDetailsProps) {
           <h2 className="text-lg font-semibold">Work Order Details</h2>
           <div className="flex gap-2">
             {isSupervisor && (
-              <Button variant="ghost" size="icon" onClick={() => setEditDialogOpen(true)}>
+              <Button variant="ghost" size="icon" onClick={handleEditClick} disabled={isLoading}>
                 <Edit className="h-4 w-4" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={(e) => {
+              e.stopPropagation()
+              onClose()
+            }}>
               <X className="h-4 w-4" />
             </Button>
           </div>

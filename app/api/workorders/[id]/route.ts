@@ -90,25 +90,25 @@ export async function PATCH(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Verificar si el usuario es un supervisor
-  if (session.user.role !== 'SUPERVISOR') {
-    return NextResponse.json(
-      { error: 'Only supervisors can update work orders' },
-      { status: 403 }
-    );
-  }
-
-  const { id } = context.params;
-  const data = await request.json();
-  const { truckNumber, technician } = data;
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verificar si el usuario es un supervisor
+    if (session.user.role !== 'SUPERVISOR') {
+      console.log('User role:', session.user.role); // Agregar log para debugging
+      return NextResponse.json(
+        { error: 'Only supervisors can update work orders' },
+        { status: 403 }
+      );
+    }
+
+    const { id } = context.params;
+    const data = await request.json();
+    const { truckNumber, technician } = data;
+
     const updatedWorkOrder = await prisma.workOrder.update({
       where: { id },
       data: {
