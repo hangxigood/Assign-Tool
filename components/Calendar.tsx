@@ -88,6 +88,13 @@ export function Calendar({
         events={events}
         editable={true}
         eventDrop={handleEventDrop}
+        eventClick={(info) => {
+          // Find the original WorkOrderEvent from our events array
+          const originalEvent = events.find(e => e.id === info.event.id)
+          if (originalEvent) {
+            onEventSelect(originalEvent)
+          }
+        }}
         ref={(el) => {
           if (el) {
             setCalendarApi(el.getApi())
@@ -102,9 +109,6 @@ export function Calendar({
               <div>Supervisor: {event.extendedProps.supervisor}</div>
             </div>
           )
-        }}
-        eventClick={(info: EventClickArg) => {
-          onEventSelect(info.event as unknown as WorkOrderEvent)
         }}
       />
     </div>
