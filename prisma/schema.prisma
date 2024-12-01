@@ -80,9 +80,9 @@ model WorkOrder {
   
   // Location information
   pickupLocation    Location     @relation("PickupLocation", fields: [pickupLocationId], references: [id])
-  pickupLocationId  String?
+  pickupLocationId  String
   deliveryLocation  Location     @relation("DeliveryLocation", fields: [deliveryLocationId], references: [id])
-  deliveryLocationId String?
+  deliveryLocationId String
   
   // Related users
   assignedTo       User          @relation("AssignedTo", fields: [assignedToId], references: [id])
