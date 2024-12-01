@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useRouter } from 'next/navigation';
 import { WorkOrder, WorkOrderEvent, toWorkOrderEvent } from '@/types/workorder';
 import { WorkOrderEditDialog } from '@/components/WorkOrderEditDialog';
 
@@ -19,7 +18,6 @@ export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrderEvent | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     fetchWorkOrders();

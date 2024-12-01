@@ -109,7 +109,7 @@ interface SidebarProps {
  * @component
  * @param {SidebarProps} props - Component props
  */
-export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrders, isLoading }: SidebarProps) {
+export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrders }: SidebarProps) {
   const { data: session } = useSession()
   const [showAddDialog, setShowAddDialog] = useState(false)
 

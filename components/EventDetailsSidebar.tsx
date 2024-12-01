@@ -10,7 +10,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, Edit } from 'lucide-react'
 import { WorkOrderEvent, formatDateTime } from "@/types/workorder"
 import { useEffect, useRef, useState } from "react"
-import { useRouter } from 'next/navigation'
 import { WorkOrderEditDialog } from "./WorkOrderEditDialog"
 
 /**
@@ -33,7 +32,6 @@ interface EventDetailsSidebarProps {
 export function EventDetailsSidebar({ event, onClose, onUpdate }: EventDetailsSidebarProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

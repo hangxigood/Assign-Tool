@@ -9,8 +9,8 @@ import { useState } from "react"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import { WorkOrderEvent, WorkOrder, toWorkOrderEvent, isValidWorkOrder } from "@/types/workorder"
-import { CalendarApi, EventClickArg, EventDropArg } from '@fullcalendar/core'
+import { WorkOrderEvent } from "@/types/workorder"
+import { CalendarApi, EventDropArg } from '@fullcalendar/core'
 
 /**
  * Calendar component for displaying work orders in a time grid view
