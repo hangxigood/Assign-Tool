@@ -45,7 +45,7 @@ model User {
   firstName     String
   lastName      String
   role          UserRole
-  phone         String?
+  phone         String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -73,15 +73,15 @@ model WorkOrder {
   
   // Dates
   startDate       DateTime
-  endDate         DateTime?
+  endDate         DateTime
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   cancelledAt     DateTime?
   
   // Location information
-  pickupLocation    Location?     @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  pickupLocation    Location     @relation("PickupLocation", fields: [pickupLocationId], references: [id])
   pickupLocationId  String?
-  deliveryLocation  Location?     @relation("DeliveryLocation", fields: [deliveryLocationId], references: [id])
+  deliveryLocation  Location     @relation("DeliveryLocation", fields: [deliveryLocationId], references: [id])
   deliveryLocationId String?
   
   // Related users
@@ -164,8 +164,8 @@ model Note {
   user        User      @relation(fields: [userId], references: [id])
   userId      String
   
-  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
-  workOrderId String?
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+  workOrderId String
   
   equipment   Equipment? @relation(fields: [equipmentId], references: [id])
   equipmentId String?
