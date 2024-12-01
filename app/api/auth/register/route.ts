@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password, firstName, lastName, role } = body;
+    const { email, password, firstName, lastName, role, phone } = body;
 
-    if (!email || !password || !firstName || !lastName || !role) {
+    if (!email || !password || !firstName || !lastName || !role || !phone) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
         firstName,
         lastName,
         role,
+        phone,
       },
     }).catch(error => {
       console.error('Error creating user:', error);
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          phone: user.phone,
         },
       },
       { status: 201 }

@@ -64,7 +64,7 @@ export async function PUT(
         clientPhone: data.clientPhone,
         clientEmail: data.clientEmail,
         startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
+        endDate: new Date(data.endDate),
         assignedToId: data.assignedToId,
         supervisorId: data.supervisorId,
         pickupLocationId: data.pickupLocationId,
