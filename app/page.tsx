@@ -30,7 +30,9 @@ export default function Page() {
           onEventSelect={setSelectedEvent}
           selectedEvent={selectedEvent}
           isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
+          onClose={() => setSidebarOpen(false)}
+          workOrders={events}
+          isLoading={isLoading}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">

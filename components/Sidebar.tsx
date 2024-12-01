@@ -5,13 +5,13 @@
  * @module Sidebar
  */
 
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Calendar, LogOut, Truck, PenTool, Box } from 'lucide-react'
 import { useSession, signOut } from "next-auth/react"
 import { WorkOrderType } from "@prisma/client"
-import { WorkOrder, WorkOrderEvent, toWorkOrderEvent, formatDateTime } from "@/types/workorder"
+import { WorkOrderEvent, formatDateTime } from "@/types/workorder"
 
 /**
  * Get the appropriate icon component for a work order type
@@ -37,7 +37,7 @@ function getWorkOrderIcon(type: WorkOrderType) {
  * Individual work order item component
  * @component
  * @param {Object} props - Component props
- * @param {WorkOrder} props.workOrder - The work order to display
+ * @param {WorkOrderEvent} props.workOrder - The work order to display
  * @param {function} props.onSelect - Callback when the work order is selected
  * @param {boolean} props.isSelected - Whether the work order is currently selected
  */
@@ -46,40 +46,39 @@ function WorkOrderItem({
   onSelect,
   isSelected 
 }: { 
-  workOrder: WorkOrder, 
+  workOrder: WorkOrderEvent, 
   onSelect: (event: WorkOrderEvent) => void,
   isSelected: boolean
 }) {
-  const handleClick = () => {
-    const event = toWorkOrderEvent(workOrder);
-    onSelect(event);
-  };
-
   return (
-    <div 
-      className={`rounded-lg p-3 transition-colors cursor-pointer ${
-        isSelected 
-          ? 'bg-blue-600 hover:bg-blue-500' 
-          : 'bg-gray-700 hover:bg-gray-600'
-      }`}
-      onClick={handleClick}
+    <div
+      onClick={() => onSelect(workOrder)}
+      className={`
+        p-3 rounded-lg cursor-pointer
+        ${isSelected 
+          ? 'bg-gray-700 hover:bg-gray-600' 
+          : 'hover:bg-gray-800'
+        }
+      `}
     >
       <div className="flex items-center gap-2">
-        {getWorkOrderIcon(workOrder.type)}
-        <span className="text-sm">
-          {formatDateTime(workOrder.startDate)}
+        <span className="p-2 rounded-lg bg-gray-700">
+          {getWorkOrderIcon(workOrder.extendedProps.type)}
+        </span>
+        <span className="text-xs text-gray-400">
+          {formatDateTime(workOrder.start)}
         </span>
       </div>
       <p className="mt-1 text-sm font-medium">{workOrder.title}</p>
       <div className="mt-1 flex items-center justify-between">
-        <span className="text-xs text-gray-400">{workOrder.clientName}</span>
+        <span className="text-xs text-gray-400">{workOrder.extendedProps.clientName}</span>
         <span className={`text-xs px-2 py-1 rounded-full ${
-          workOrder.status === "COMPLETED" ? "bg-green-500/20 text-green-300" :
-          workOrder.status === "IN_PROGRESS" ? "bg-blue-500/20 text-blue-300" :
-          workOrder.status === "CANCELLED" ? "bg-red-500/20 text-red-300" :
+          workOrder.extendedProps.status === "COMPLETED" ? "bg-green-500/20 text-green-300" :
+          workOrder.extendedProps.status === "IN_PROGRESS" ? "bg-blue-500/20 text-blue-300" :
+          workOrder.extendedProps.status === "CANCELLED" ? "bg-red-500/20 text-red-300" :
           "bg-gray-500/20 text-gray-300"
         }`}>
-          {workOrder.status}
+          {workOrder.extendedProps.status}
         </span>
       </div>
     </div>
@@ -98,6 +97,10 @@ interface SidebarProps {
   onClose: () => void
   /** Currently selected work order event */
   selectedEvent: WorkOrderEvent | null
+  /** Work order events to display */
+  workOrders: WorkOrderEvent[]
+  /** Loading state */
+  isLoading?: boolean
 }
 
 /**
@@ -105,36 +108,22 @@ interface SidebarProps {
  * @component
  * @param {SidebarProps} props - Component props
  */
-export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent }: SidebarProps) {
+export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent, workOrders, isLoading }: SidebarProps) {
   const { data: session } = useSession()
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
 
-  useEffect(() => {
-    const fetchWorkOrders = async () => {
-      try {
-        const response = await fetch('/api/workorders')
-        const data = await response.json()
-        
-        // Filter work orders if user is a technician
-        const filteredOrders = session?.user?.role === "TECHNICIAN"
-          ? data.filter((order: WorkOrder) => 
-              order.assignedTo?.firstName === session.user.firstName && 
-              order.assignedTo?.lastName === session.user.lastName)
-          : data
+  // Filter and sort work orders
+  const filteredAndSortedOrders = useMemo(() => {
+    // Filter work orders if user is a technician
+    const filteredOrders = session?.user?.role === "TECHNICIAN"
+      ? workOrders.filter(order => 
+          order.extendedProps.assignedToId === session.user.id)
+      : workOrders
 
-        // Sort by start date
-        const sortedOrders = filteredOrders.sort((a: WorkOrder, b: WorkOrder) => 
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        )
-
-        setWorkOrders(sortedOrders)
-      } catch (error) {
-        console.error('Error fetching work orders:', error)
-      }
-    }
-
-    fetchWorkOrders()
-  }, [session])
+    // Sort by start date
+    return filteredOrders.sort((a, b) => 
+      a.start.getTime() - b.start.getTime()
+    )
+  }, [workOrders, session])
 
   return (
     <>
@@ -152,8 +141,6 @@ export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent }: Sideb
         w-64 bg-gray-900 text-white transform transition-transform duration-200 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-
-
         <ScrollArea className="h-[calc(100vh-64px)]">
           <div className="p-4">
             <div className="flex justify-between items-center">
@@ -172,7 +159,7 @@ export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent }: Sideb
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-gray-400">ACTIVITY FEED</h3>
               <div className="space-y-4 mt-2">
-                {workOrders.map((workOrder) => (
+                {filteredAndSortedOrders.map((workOrder) => (
                   <WorkOrderItem 
                     key={workOrder.id} 
                     workOrder={workOrder} 
@@ -180,7 +167,7 @@ export function Sidebar({ onEventSelect, isOpen, onClose, selectedEvent }: Sideb
                     isSelected={workOrder.id === selectedEvent?.id}
                   />
                 ))}
-                {workOrders.length === 0 && (
+                {filteredAndSortedOrders.length === 0 && (
                   <div className="text-sm text-gray-400 text-center py-4">
                     No work orders found
                   </div>
