@@ -69,7 +69,7 @@ model WorkOrder {
   // Client information
   clientName      String
   clientPhone     String
-  clientEmail     String?
+  clientEmail     String
   
   // Dates
   startDate       DateTime
