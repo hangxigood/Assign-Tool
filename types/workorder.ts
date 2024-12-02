@@ -162,7 +162,7 @@ export function toWorkOrderEvent(workOrder: WorkOrder): WorkOrderEvent {
     const colors = getEventColor(workOrder.type);
     return {
         id: workOrder.id,
-        title: `${workOrder.fameNumber} - ${workOrder.clientName}`,
+        title: workOrder.title,
         start: toDate(workOrder.startDate),
         end: toDate(workOrder.endDate),
         type: workOrder.type,

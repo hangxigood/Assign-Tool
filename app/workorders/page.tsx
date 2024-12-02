@@ -10,9 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Calendar as CalendarIcon } from "lucide-react";
 import { WorkOrder, WorkOrderEvent, toWorkOrderEvent } from '@/types/workorder';
 import { WorkOrderEditDialog } from '@/components/WorkOrderEditDialog';
+import Link from 'next/link';
 
 export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -67,13 +68,21 @@ export default function WorkOrdersPage() {
     <div className="container section-padding">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="heading-responsive">Work Orders</h1>
-        <Button 
-          onClick={handleCreateNew}
-          className="w-full sm:w-auto"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create New
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Link href="/" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              Calendar
+            </Button>
+          </Link>
+          <Button 
+            onClick={handleCreateNew}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create New
+          </Button>
+        </div>
       </div>
 
       <div className="content-spacing">
