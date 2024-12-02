@@ -50,13 +50,13 @@ interface WorkOrderBase {
     /** Name of the client */
     clientName: string
     /** Client's email address */
-    clientEmail?: string
+    clientEmail: string
     /** Client's phone number */
-    clientPhone?: string
+    clientPhone: string
     /** ID of the pickup location */
-    pickupLocationId?: string
+    pickupLocationId: string
     /** ID of the delivery location */
-    deliveryLocationId?: string
+    deliveryLocationId: string
 }
 
 /**
@@ -70,7 +70,7 @@ export interface WorkOrder extends WorkOrderBase {
     /** Information about the assigned technician */
     assignedTo: User
     /** Information about the supervising staff member */
-    supervisor?: User
+    supervisor: User
 }
 
 /**
@@ -84,7 +84,7 @@ export interface WorkOrderFormData extends WorkOrderBase {
     /** ID of the assigned technician */
     assignedToId: string
     /** ID of the supervisor */
-    supervisorId?: string
+    supervisorId: string
 }
 
 // Calendar-specific properties
@@ -96,7 +96,7 @@ interface CalendarEventProps {
     /** ID of assigned technician */
     assignedToId: string
     /** ID of supervisor */
-    supervisorId?: string
+    supervisorId: string
 }
 
 /**
@@ -182,9 +182,9 @@ export function toWorkOrderEvent(workOrder: WorkOrder): WorkOrderEvent {
             clientEmail: workOrder.clientEmail,
             clientPhone: workOrder.clientPhone,
             assignedTo: formatAssigneeName(workOrder.assignedTo),
-            supervisor: workOrder.supervisor ? formatAssigneeName(workOrder.supervisor) : '',
+            supervisor: formatAssigneeName(workOrder.supervisor),
             assignedToId: workOrder.assignedTo.id,
-            supervisorId: workOrder.supervisor?.id
+            supervisorId: workOrder.supervisor.id
         }
     }
 }
