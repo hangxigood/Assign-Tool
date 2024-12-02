@@ -249,3 +249,69 @@ export function formatDateTime(date: string | Date): string {
         hour12: true
     })
 }
+
+// Location type for pickup and delivery locations
+export interface WorkOrderLocation {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    latitude: number | null;
+    longitude: number | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+// User type for work order responses
+export interface WorkOrderUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+}
+
+// API Request Types
+export interface UpdateWorkOrderRequest extends Omit<WorkOrderBase, 'id' | 'title'> {
+    startDate: string;
+    endDate: string;
+    assignedToId: string;
+    supervisorId: string;
+    pickupLocationId: string;
+    deliveryLocationId: string;
+}
+
+// API Response Types
+export interface WorkOrderResponse extends Omit<WorkOrder, 'assignedTo' | 'supervisor'> {
+    pickupLocation: WorkOrderLocation;
+    deliveryLocation: WorkOrderLocation;
+    assignedTo: WorkOrderUser;
+    supervisor: WorkOrderUser;
+}
+
+// Type Guards
+export function isUpdateWorkOrderRequest(obj: unknown): obj is UpdateWorkOrderRequest {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const requiredFields: (keyof UpdateWorkOrderRequest)[] = [
+        'type', 'status', 'fameNumber', 'clientName', 'clientPhone', 'clientEmail',
+        'startDate', 'endDate', 'assignedToId', 'supervisorId', 'pickupLocationId',
+        'deliveryLocationId'
+    ];
+    
+    return requiredFields.every(field => {
+        if (!(field in obj)) return false;
+        const value = (obj as any)[field];
+        return typeof value === 'string' && value.length > 0;
+    });
+}
+
+export function isApiErrorResponse(obj: unknown): obj is ApiErrorResponse {
+    if (!obj || typeof obj !== 'object') return false;
+    return 'error' in obj && typeof (obj as ApiErrorResponse).error === 'string';
+}
+
+export interface ApiErrorResponse {
+    error: string;
+    details?: unknown;
+}
