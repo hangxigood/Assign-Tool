@@ -75,7 +75,7 @@ function toDomainWorkOrder(dbWorkOrder: PrismaWorkOrder): WorkOrder {
 /**
  * Handles GET requests to retrieve work orders.
  */
-export async function GET(request: Request): Promise<NextResponse<WorkOrder[] | { error: string }>> {
+export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string }>> {
   const session = await getServerSession(authOptions);
   
   if (!session?.user) {

@@ -26,7 +26,7 @@ export function RequirePermission({
   }
 
   if (!hasPermission(session.user.role, permission)) {
-    return fallback || <div>You don't have permission to access this resource.</div>;
+    return fallback || <div>You don&apos;t have permission to access this resource.</div>;
   }
 
   return <>{children}</>;
