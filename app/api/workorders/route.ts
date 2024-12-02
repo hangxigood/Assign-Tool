@@ -4,6 +4,7 @@ import { WorkOrder } from '@/types/workorder';
 import { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
+import { hasPermission } from '@/lib/permission';
 
 // Define the exact type that Prisma returns
 type PrismaWorkOrder = Prisma.WorkOrderGetPayload<{
@@ -74,7 +75,17 @@ function toDomainWorkOrder(dbWorkOrder: PrismaWorkOrder): WorkOrder {
 /**
  * Handles GET requests to retrieve work orders.
  */
-export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string }>> {
+export async function GET(request: Request): Promise<NextResponse<WorkOrder[] | { error: string }>> {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(session.user.role, "view-work-orders")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const dbWorkOrders = await prisma.workOrder.findMany({
       include: {
@@ -121,12 +132,17 @@ export async function GET(): Promise<NextResponse<WorkOrder[] | { error: string 
  * @param request The incoming request object.
  */
 export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
+  if (!hasPermission(session.user.role, "create-work-orders")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
     const data = await request.json();
     const workOrder = await prisma.workOrder.create({
       data: {

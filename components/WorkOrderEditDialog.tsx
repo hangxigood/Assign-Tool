@@ -4,7 +4,7 @@
  * @fileoverview Dialog component for editing work order details
  * @module WorkOrderEditDialog
  */
-
+import { usePermission } from "@/hooks/usePermission";
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -61,6 +61,9 @@ export function WorkOrderEditDialog({
   onSave,
   onDelete
 }: WorkOrderEditDialogProps) {
+  const canEdit = usePermission("edit-work-orders");
+  const canCreate = usePermission("create-work-orders");
+
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -155,7 +158,7 @@ export function WorkOrderEditDialog({
       <DialogContent className="w-full max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="subheading-responsive">
-            {workOrder ? 'Edit Work Order' : 'Create Work Order'}
+            {workOrder ? (canEdit ? 'Edit Work Order' : 'View Work Order') : (canCreate ? 'Create Work Order' : 'Unauthorized')}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="content-spacing">
@@ -339,8 +342,10 @@ export function WorkOrderEditDialog({
           
           <DialogFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
             <div className="button-group">
-              <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
-              {onDelete && (
+              {(workOrder ? canEdit : canCreate) && (
+                <Button type="submit" className="w-full sm:w-auto">Save changes</Button>
+              )}
+              {onDelete && canEdit && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="w-full sm:w-auto">Delete</Button>
