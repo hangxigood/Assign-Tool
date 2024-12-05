@@ -23,7 +23,7 @@ export default async function LoginPage() {
             Welcome back
           </h1>
           <p className="text-sm text-muted-foreground">
-            Enter your email and password to sign in
+            Enter your email(admin@example.com) and password(admin123) to sign in
           </p>
         </div>
         <LoginForm />
