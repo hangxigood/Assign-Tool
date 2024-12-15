@@ -1,7 +1,36 @@
+/**
+ * @fileoverview Hook for fetching and managing work orders as calendar events
+ * Handles loading states, error handling, and validation of work orders
+ */
+
 import { useState, useEffect } from 'react'
 import { WorkOrderEvent, WorkOrder, toWorkOrderEvent, isValidWorkOrder } from "@/types/workorder"
 
-export function useWorkOrders() {
+/**
+ * Hook to fetch and manage work orders
+ * 
+ * @returns An object containing:
+ * - events: Array of work order events
+ * - isLoading: Boolean indicating if fetch is in progress
+ * - error: Error object if fetch failed, null otherwise
+ * - refetch: Function to manually trigger a refresh of work orders
+ * 
+ * @example
+ * ```tsx
+ * const { events, isLoading, error, refetch } = useWorkOrders();
+ * 
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error message={error.message} />;
+ * 
+ * return <Calendar events={events} />;
+ * ```
+ */
+export function useWorkOrders(): {
+  events: WorkOrderEvent[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+} {
   const [events, setEvents] = useState<WorkOrderEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
