@@ -94,7 +94,6 @@ export function Calendar({
           slotMinTime="00:00:00"
           slotMaxTime="24:00:00"
           events={events}
-          editable={true}
           eventDrop={handleEventDrop}
           eventClick={(info) => {
             // Find the original WorkOrderEvent from our events array
