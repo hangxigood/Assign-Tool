@@ -16,13 +16,18 @@ interface Stats {
   hoursWorked: number;
 }
 
-export function StatsBar() {
+/**
+ * Stats bar component that displays current statistics
+ * @param props.trigger - Optional value that triggers a stats refresh when changed
+ */
+export function StatsBar({ trigger }: { trigger?: number }) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setLoading(true)
         const response = await fetch('/api/stats')
         const data = await response.json()
         setStats(data)
@@ -34,7 +39,7 @@ export function StatsBar() {
     }
 
     fetchStats()
-  }, [])
+  }, [trigger]) // Add trigger to dependencies
 
   const statsConfig = [
     { 

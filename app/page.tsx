@@ -36,6 +36,7 @@ export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { events, isLoading, error, refetch } = useWorkOrders()
   const [selectedEvent, setSelectedEvent] = useState<WorkOrderEvent | null>(null)
+  const [updateTrigger, setUpdateTrigger] = useState(0) // Add update trigger
 
   // Update selectedEvent when events change
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function Page() {
 
   const handleUpdate = async () => {
     await refetch()
+    setUpdateTrigger(prev => prev + 1) // Increment trigger to force StatsBar update
   }
 
   return (
@@ -83,7 +85,7 @@ export default function Page() {
                 />
               )}
             </div>
-            <StatsBar />
+            <StatsBar trigger={updateTrigger} />
           </main>
         </div>
       </div>
