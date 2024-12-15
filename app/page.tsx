@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Main application page component that integrates calendar, sidebar, and event details
+ * Manages work order events display and interaction between different components
+ */
+
 'use client'
 
 import { useState, useEffect } from "react"
@@ -10,6 +15,23 @@ import { Button } from "@/components/ui/button"
 import { useWorkOrders } from "@/hooks/useWorkOrders"
 import { WorkOrderEvent } from "@/types/workorder"
 
+/**
+ * Main page component of the application
+ * Manages the layout and state of the work order calendar system
+ * 
+ * Features:
+ * - Responsive sidebar navigation
+ * - Work order calendar display
+ * - Event selection and details view
+ * - Stats bar for metrics
+ * 
+ * @returns React component that renders the main application layout
+ * 
+ * State management:
+ * - sidebarOpen: Controls the visibility of the sidebar on mobile
+ * - selectedEvent: Tracks the currently selected work order event
+ * - Integrates with useWorkOrders hook for data fetching
+ */
 export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { events, isLoading, error, refetch } = useWorkOrders()
