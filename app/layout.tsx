@@ -1,4 +1,4 @@
-import "@/app/globals.css"
+import "@/public/globals.css"
 import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 import { getServerSession } from 'next-auth';
