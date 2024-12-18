@@ -23,7 +23,7 @@ export async function GET() {
       },
     });
     return NextResponse.json(equipments);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Error fetching equipments" }, { status: 500 });
   }
 }
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(equipment);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Error creating equipment" }, { status: 500 });
   }
 }
@@ -88,7 +88,7 @@ export async function PUT(request: Request) {
       },
     });
     return NextResponse.json(equipment);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Error updating equipment" }, { status: 500 });
   }
 }
@@ -118,7 +118,7 @@ export async function DELETE(request: Request) {
       where: { id },
     });
     return NextResponse.json({ message: "Equipment deleted successfully" });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Error deleting equipment" }, { status: 500 });
   }
 }

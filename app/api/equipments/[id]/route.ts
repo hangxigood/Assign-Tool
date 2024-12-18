@@ -50,7 +50,7 @@ export async function GET(
     }
 
     return NextResponse.json(equipment);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Error fetching equipment" },
       { status: 500 }
