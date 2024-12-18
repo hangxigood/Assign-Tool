@@ -11,6 +11,7 @@ import { X, Edit } from 'lucide-react'
 import { WorkOrderEvent, formatDateTime } from "@/types/workorder"
 import { useEffect, useRef, useState } from "react"
 import { WorkOrderEditDialog } from "./WorkOrderEditDialog"
+import { toast } from "@/hooks/use-toast"
 
 /**
  * Props for the EventDetailsSidebar component
@@ -117,7 +118,14 @@ export function EventDetailsSidebar({ event, onClose, onUpdate }: EventDetailsSi
         workOrder={event}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
-        onSave={onUpdate}
+        onSave={() => {
+          onUpdate();
+          setEditDialogOpen(false);
+          toast({
+            title: "Success",
+            description: "Work order updated successfully",
+          });
+        }}
       />
 
     </div>

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 import { getServerSession } from 'next-auth';
 import { SessionProvider } from "@/components/SessionProvider";
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,6 +27,7 @@ export default async function RootLayout({
       <body suppressHydrationWarning className={inter.className}>
         <SessionProvider session={session}>
           {children}
+          <Toaster />
         </SessionProvider>
       </body>
     </html>

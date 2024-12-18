@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar as CalendarIcon } from "lucide-react";
 import { WorkOrder, WorkOrderEvent, toWorkOrderEvent } from '@/types/workorder';
 import { WorkOrderEditDialog } from '@/components/WorkOrderEditDialog';
+import { toast } from "@/hooks/use-toast";
 import Link from 'next/link';
 
 export default function WorkOrdersPage() {
@@ -59,9 +60,19 @@ export default function WorkOrdersPage() {
       });
       
       if (!response.ok) throw new Error('Failed to delete work order');
+      console.log('Work order deleted successfully');
+      toast({
+        title: "Success",
+        description: "Work order deleted successfully",
+      });
       fetchWorkOrders();
     } catch (error) {
       console.error('Error deleting work order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete work order",
+        variant: "destructive",
+      });
     }
   };
 

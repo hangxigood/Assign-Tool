@@ -14,6 +14,7 @@ import { useState, useEffect, FormEvent } from "react"
 import { WorkOrderType, WorkOrderStatus } from "@prisma/client"
 import { WorkOrderEvent, WorkOrderFormData, toWorkOrderFormData } from "@/types/workorder"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { toast } from "@/hooks/use-toast"
 
 /**
  * Props for the User interface
@@ -117,6 +118,7 @@ export function WorkOrderEditDialog({
     try {
       const url = workOrder?.id ? `/api/workorders/${workOrder.id}` : '/api/workorders'
       const method = workOrder?.id ? 'PUT' : 'POST'
+      const action = workOrder?.id ? 'updated' : 'created'
       
       const response = await fetch(url, {
         method,
@@ -126,13 +128,22 @@ export function WorkOrderEditDialog({
         body: JSON.stringify(formData)
       })
       
-      if (!response.ok) throw new Error(`Failed to ${workOrder?.id ? 'update' : 'create'} work order`)
+      if (!response.ok) throw new Error(`Failed to ${action} work order`)
       
       await response.json()
+      toast({
+        title: "Success",
+        description: `Work order ${action} successfully`,
+      })
       onSave()
       onOpenChange(false)
     } catch (error) {
       console.error(`Error ${workOrder?.id ? 'updating' : 'creating'} work order:`, error)
+      toast({
+        title: "Error",
+        description: `Failed to ${workOrder?.id ? 'update' : 'create'} work order`,
+        variant: "destructive",
+      })
     }
   }
 
@@ -146,10 +157,19 @@ export function WorkOrderEditDialog({
       
       if (!response.ok) throw new Error('Failed to delete work order');
       
+      toast({
+        title: "Success",
+        description: "Work order deleted successfully",
+      })
       onDelete();
       onOpenChange(false);
     } catch (error) {
       console.error('Error deleting work order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete work order",
+        variant: "destructive",
+      })
     }
   };
 
