@@ -5,7 +5,7 @@ import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { WorkOrderEvent } from "@/types/workorder"
-import { CalendarApi, EventDropArg } from '@fullcalendar/core'
+import { CalendarApi, EventDropArg, EventClickArg } from '@fullcalendar/core'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 
@@ -76,7 +76,7 @@ const useCalendarApi = () => {
     calendarApi.changeView(view)
   }, [calendarApi])
   
-  return { calendarApi, setCalendarApi, handleResize }
+  return { setCalendarApi, handleResize }
 }
 
 const useEventDrop = () => {
@@ -104,7 +104,7 @@ const useEventDrop = () => {
 
 // Main Calendar component
 export function Calendar({ onEventSelect, events }: CalendarProps) {
-  const { calendarApi, setCalendarApi, handleResize } = useCalendarApi()
+  const { setCalendarApi, handleResize } = useCalendarApi()
   const handleEventDrop = useEventDrop()
   
   const calendarOptions = useMemo(() => ({
@@ -132,7 +132,7 @@ export function Calendar({ onEventSelect, events }: CalendarProps) {
     slotMaxTime: "24:00:00"
   }), [])
 
-  const handleEventClick = useCallback((info: any) => {
+  const handleEventClick = useCallback((info: EventClickArg) => {
     const originalEvent = events.find(e => e.id === info.event.id)
     if (originalEvent) {
       onEventSelect(originalEvent)
