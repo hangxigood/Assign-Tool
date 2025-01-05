@@ -12,6 +12,7 @@ import type { Metadata } from "next"
 import { getServerSession } from 'next-auth';
 import { SessionProvider } from "@/components/SessionProvider";
 import { Toaster } from "@/components/ui/toaster"
+import BackgroundPattern from "@/components/BackgroundPattern";
 
 // Initialize Inter font with Latin subset
 const inter = Inter({ subsets: ["latin"] })
@@ -46,7 +47,7 @@ export default async function RootLayout({
       </head>
       <body suppressHydrationWarning className={inter.className}>
         <SessionProvider session={session}>
-          {children}
+          <BackgroundPattern>{children}</BackgroundPattern>
           <Toaster /> {/* Add toast notifications */}
         </SessionProvider>
       </body>

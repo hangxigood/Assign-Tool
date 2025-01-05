@@ -14,6 +14,7 @@ import { MobileNavigationMenu } from "@/components/MobileNavigationMenu"
 import { useWorkOrders } from "@/hooks/useWorkOrders"
 import { WorkOrderEvent } from "@/types/workorder"
 import { LoadingErrorHandler } from "@/components/LoadingErrorHandler"
+import BackgroundPattern from "@/components/BackgroundPattern"
 
 /**
  * Main page component of the application
@@ -54,35 +55,36 @@ export default function Page() {
 
   return (
     <>
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-900 relative">
-        <MobileNavigationMenu
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
+      <BackgroundPattern />
 
-        <Sidebar
-          onEventSelect={setSelectedEvent}
-          selectedEvent={selectedEvent}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          workOrders={events}
-          isLoading={isLoading}
-        />
+      <MobileNavigationMenu
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-hidden flex flex-col">
-            <div className="flex-1 p-4 overflow-x-auto overflow-y-hidden mt-14 lg:mt-0">
-              <LoadingErrorHandler isLoading={isLoading} error={error}>
-                <Calendar
-                  onEventSelect={setSelectedEvent}
-                  events={events}
-                />
-              </LoadingErrorHandler>
-            </div>
-            <StatsBar trigger={updateTrigger} />
-          </main>
-        </div>
+      <Sidebar
+        onEventSelect={setSelectedEvent}
+        selectedEvent={selectedEvent}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        workOrders={events}
+        isLoading={isLoading}
+      />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 p-4 overflow-x-auto overflow-y-hidden mt-14 lg:mt-0">
+            <LoadingErrorHandler isLoading={isLoading} error={error}>
+              <Calendar
+                onEventSelect={setSelectedEvent}
+                events={events}
+              />
+            </LoadingErrorHandler>
+          </div>
+          <StatsBar trigger={updateTrigger} />
+        </main>
       </div>
+
       <EventDetailsSidebar
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
