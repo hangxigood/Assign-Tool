@@ -1,3 +1,11 @@
+/**
+ * Root layout component for the Docket application.
+ * This component serves as the main layout wrapper for all pages,
+ * providing session management, styling, and common UI elements.
+ * 
+ * @module Layout
+ */
+
 import "@/public/globals.css"
 import { Inter } from "next/font/google"
 import type { Metadata } from "next"
@@ -5,18 +13,30 @@ import { getServerSession } from 'next-auth';
 import { SessionProvider } from "@/components/SessionProvider";
 import { Toaster } from "@/components/ui/toaster"
 
+// Initialize Inter font with Latin subset
 const inter = Inter({ subsets: ["latin"] })
 
+/**
+ * Metadata configuration for the application
+ */
 export const metadata: Metadata = {
   title: "Scheduling Dashboard",
   description: "Workforce management and scheduling dashboard",
 }
 
+/**
+ * Root layout component that wraps all pages in the application.
+ * Provides session management, styling, and common UI elements.
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to be rendered within the layout
+ * @returns {Promise<JSX.Element>} The rendered layout component
+ */
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
-}) {
+}): Promise<JSX.Element> {
   const session = await getServerSession();
 
   return (
@@ -27,7 +47,7 @@ export default async function RootLayout({
       <body suppressHydrationWarning className={inter.className}>
         <SessionProvider session={session}>
           {children}
-          <Toaster />
+          <Toaster /> {/* Add toast notifications */}
         </SessionProvider>
       </body>
     </html>
