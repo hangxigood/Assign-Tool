@@ -6,15 +6,12 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Calendar } from "@/components/Calendar"
 import { Sidebar } from "@/components/Sidebar"
-import { StatsBar } from "@/components/StatsBar"
 import { EventDetailsSidebar } from "@/components/EventDetailsSidebar"
 import { MobileNavigationMenu } from "@/components/MobileNavigationMenu"
 import { useWorkOrders } from "@/hooks/useWorkOrders"
 import { WorkOrderEvent } from "@/types/workorder"
-import { LoadingErrorHandler } from "@/components/LoadingErrorHandler"
-import BackgroundPattern from "@/components/BackgroundPattern"
+import { MainContent } from "@/components/MainContent"
 
 /**
  * Main page component of the application
@@ -55,8 +52,6 @@ export default function Page() {
 
   return (
     <>
-      <BackgroundPattern />
-
       <MobileNavigationMenu
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -71,19 +66,13 @@ export default function Page() {
         isLoading={isLoading}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 p-4 overflow-x-auto overflow-y-hidden mt-14 lg:mt-0">
-            <LoadingErrorHandler isLoading={isLoading} error={error}>
-              <Calendar
-                onEventSelect={setSelectedEvent}
-                events={events}
-              />
-            </LoadingErrorHandler>
-          </div>
-          <StatsBar trigger={updateTrigger} />
-        </main>
-      </div>
+      <MainContent
+        isLoading={isLoading}
+        error={error}
+        events={events}
+        onEventSelect={setSelectedEvent}
+        updateTrigger={updateTrigger}
+      />
 
       <EventDetailsSidebar
         event={selectedEvent}
