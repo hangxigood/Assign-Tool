@@ -63,10 +63,10 @@ export default function Page() {
           <Menu className="h-6 w-6" />
         </Button>
 
-        <Sidebar 
+        <Sidebar
           onEventSelect={setSelectedEvent}
           selectedEvent={selectedEvent}
-          isOpen={sidebarOpen} 
+          isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           workOrders={events}
           isLoading={isLoading}
@@ -79,9 +79,9 @@ export default function Page() {
               {isLoading ? (
                 <div>Loading...</div>
               ) : (
-                <Calendar 
-                  onEventSelect={setSelectedEvent} 
-                  events={events} 
+                <Calendar
+                  onEventSelect={setSelectedEvent}
+                  events={events}
                 />
               )}
             </div>
@@ -89,7 +89,7 @@ export default function Page() {
           </main>
         </div>
       </div>
-      <EventDetailsSidebar 
+      <EventDetailsSidebar
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         onUpdate={handleUpdate}
