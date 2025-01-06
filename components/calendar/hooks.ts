@@ -11,17 +11,32 @@ import { useState, useCallback } from "react"
 import { CalendarApi, EventDropArg } from '@fullcalendar/core'
 
 /**
- * Custom hook to manage calendar API and responsive view changes
+ * Custom hook for managing FullCalendar API and responsive interactions
  * 
- * @function useCalendarApi
- * @description Handles calendar API state and provides a method to change view based on screen size
+ * Data Flow:
+ * 1. Component creates a ref to FullCalendar component
+ * 2. When ref is available, calls setCalendarApi with the calendar's API
+ * 3. Stored API enables programmatic calendar manipulations
+ * 
+ * Key Responsibilities:
+ * - Provide a way to store and access the FullCalendar API instance
+ * - Enable responsive view changes based on screen width
  * 
  * @returns {Object} An object containing:
- * - `setCalendarApi`: Function to set the calendar API instance
- * - `handleResize`: Callback to change calendar view based on screen width
+ * - `setCalendarApi`: Function to store the FullCalendar API instance
+ * - `handleResize`: Callback to dynamically change calendar view based on screen width
  * 
  * @example
+ * // In a component using FullCalendar
  * const { setCalendarApi, handleResize } = useCalendarApi()
+ * 
+ * // Attach to FullCalendar component
+ * <FullCalendar
+ *   ref={(el) => {
+ *     if (el) setCalendarApi(el.getApi())
+ *   }}
+ *   windowResize={handleResize}
+ * />
  */
 export const useCalendarApi = (): {
   setCalendarApi: (api: CalendarApi | null) => void,
