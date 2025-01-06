@@ -1,4 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Docket
+
+Docket is a comprehensive work order management system built with Next.js, designed to streamline the process of managing and tracking work orders across an organization. The application provides a sophisticated scheduling and event management platform with role-based access control.
+
+## Key Features
+
+- **Interactive Calendar Interface**: Built with FullCalendar, providing an intuitive way to view and manage work orders
+- **Role-Based Access Control**: Supports multiple user roles including Admin, Coordinator, Supervisor, and Technician
+- **Work Order Management**:
+  - Create, edit, and track work orders
+  - Different types of work orders: Pickup, Setup, Delivery, Activation, and Teardown
+  - Status tracking (Pending, In Progress, Completed, Cancelled)
+- **Real-time Statistics**: Track work order metrics and performance through the stats bar
+- **Responsive Design**: Full mobile support with adaptive sidebar and navigation
+- **User Management**: Complete user authentication and authorization system
+- **Equipment Tracking**: Monitor equipment status (Available, In Use, Maintenance, Out of Service)
+- **Document Management**: Attach and manage documents related to work orders
+
+## Tech Stack
+
+- **Frontend**: Next.js with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **UI Components**: Custom components with Tailwind CSS
+- **Calendar**: FullCalendar integration
 
 ## Getting Started
 
